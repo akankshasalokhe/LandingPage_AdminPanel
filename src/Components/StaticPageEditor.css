@@ -1,0 +1,43 @@
+.static-page-editor-container {
+  max-width: 1000px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.static-page-heading {
+  font-size: 2rem;
+  text-align: center;
+  font-weight: 600;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.save-button {
+  display: inline-block;
+  margin-top: 16px;
+  padding: 10px 24px;
+  font-size: 1rem;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.save-button:hover {
+  background-color: #0056b3;
+}
+
+@media (max-width: 768px) {
+  .static-page-heading {
+    font-size: 1.5rem;
+  }
+
+  .save-button {
+    width: 100%;
+    padding: 12px;
+  }
+}
