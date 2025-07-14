@@ -1,4 +1,3 @@
-// src/pages/AdminGalleryPage.jsx
 import React, { useEffect, useState } from 'react';
 import { Button, Form, Modal, Table, Spinner } from 'react-bootstrap';
 import './css/Gallery.css';
@@ -14,17 +13,17 @@ const Gallery = () => {
     image: null,
   });
   const [editId, setEditId] = useState(null);
+  const [alert, setAlert] = useState({ type: '', message: '' });
 
   const fetchGallery = async () => {
     setLoading(true);
     try {
       const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/gallery/get');
       const data = await res.json();
-      console.log('Gallery response:', data); // Debugging
       if (data && Array.isArray(data.data)) {
         setGalleryItems(data.data);
       } else {
-        setGalleryItems([]); // fallback
+        setGalleryItems([]);
         console.error('Unexpected gallery response structure:', data);
       }
     } catch (err) {
@@ -36,6 +35,13 @@ const Gallery = () => {
   useEffect(() => {
     fetchGallery();
   }, []);
+
+  useEffect(() => {
+    if (alert.message) {
+      const timeout = setTimeout(() => setAlert({ type: '', message: '' }), 3000);
+      return () => clearTimeout(timeout);
+    }
+  }, [alert]);
 
   const handleImageUpload = async () => {
     const form = new FormData();
@@ -55,22 +61,31 @@ const Gallery = () => {
       if (formData.image instanceof File) {
         src = await handleImageUpload();
       }
+
       const payload = { ...formData, src };
       const options = {
         method: editId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       };
+
       const endpoint = editId
         ? `https://landing-page-backend-alpha.vercel.app/api/gallery/update/${editId}`
         : 'https://landing-page-backend-alpha.vercel.app/api/gallery/create';
-      await fetch(endpoint, options);
+
+      const res = await fetch(endpoint, options);
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.message || 'Failed to save item.');
+
+      setAlert({ type: 'success', message: `Gallery item ${editId ? 'updated' : 'added'} successfully.` });
       setShowModal(false);
       setFormData({ title: '', category: 'Awards', year: '', image: null });
       setEditId(null);
       fetchGallery();
     } catch (err) {
       console.error(err);
+      setAlert({ type: 'danger', message: err.message || 'Something went wrong.' });
     }
   };
 
@@ -87,10 +102,20 @@ const Gallery = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure to delete this item?')) {
-      await fetch(`https://landing-page-backend-alpha.vercel.app/api/gallery/delete/${id}`, {
-        method: 'DELETE',
-      });
-      fetchGallery();
+      try {
+        const res = await fetch(`https://landing-page-backend-alpha.vercel.app/api/gallery/delete/${id}`, {
+          method: 'DELETE',
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.message || 'Failed to delete.');
+
+        setAlert({ type: 'success', message: 'Gallery item deleted successfully.' });
+        fetchGallery();
+      } catch (err) {
+        console.error(err);
+        setAlert({ type: 'danger', message: err.message || 'Failed to delete item.' });
+      }
     }
   };
 
@@ -100,6 +125,12 @@ const Gallery = () => {
       <Button onClick={() => setShowModal(true)} className="mb-3">
         Add Gallery Item
       </Button>
+
+      {alert.message && (
+        <div className={`alert alert-${alert.type} mb-3`} role="alert">
+          {alert.message}
+        </div>
+      )}
 
       {loading ? (
         <Spinner animation="border" />
