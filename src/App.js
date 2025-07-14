@@ -45,6 +45,8 @@ import PrivacyPolicy from './Pages/PrivacyPolicy';
 import TermsAndConditions from './Pages/TermsAndCondition';
 import ReturnAndRefund from './Pages/ReturnAndRefund';
 import AboutUs from './Pages/AboutUs';
+import Gallery from './Pages/Gallery';
+import GalleryManager from './Pages/Gallery';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -145,6 +147,7 @@ const App = () => {
             <Route path='/Terms-and-Conditions' element={<TermsAndConditions/>}/>
             <Route path='/Return-and-Refund' element={<ReturnAndRefund/>}/>
             <Route path="/about-us" element={<AboutUs />} />
+            <Route path="/gallery" element={<Gallery />} />
             <Route path="*" element={<Navigate to="/Service-Page" />} />
            
           </>

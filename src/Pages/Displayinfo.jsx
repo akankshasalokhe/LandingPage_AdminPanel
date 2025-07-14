@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/Displayinfo.css';
 
+
 const DisplayInfo = () => {
   const [items, setItems] = useState([]);
   const [selectedItem, setSelectedItem] = useState(null);
@@ -16,7 +17,7 @@ const DisplayInfo = () => {
 
   const fetchItems = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/item/get');
+      const response = await fetch('https://landing-page-backend-alpha.vercel.app/api/item/get');
       if (!response.ok) throw new Error('Failed to fetch items');
       const data = await response.json();
       setItems(data.data);
@@ -57,8 +58,8 @@ const DisplayInfo = () => {
 
   try {
     const url = isCreating
-      ? 'http://localhost:5000/api/item/add'
-      : `http://localhost:5000/api/item/update/${data._id}`;
+      ? 'https://landing-page-backend-alpha.vercel.app/api/item/add'
+      : `https://landing-page-backend-alpha.vercel.app/api/item/update/${data._id}`;
     const method = isCreating ? 'POST' : 'PUT';
 
     const response = await fetch(url, { method, body: formData });
@@ -75,7 +76,7 @@ const DisplayInfo = () => {
 
   const deleteItem = async (id) => {
     try {
-      const response = await fetch(`http://localhost:5000/api/item/delete/${id}`, {
+      const response = await fetch(`https://landing-page-backend-alpha.vercel.app/api/item/delete/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete item');
@@ -274,7 +275,7 @@ const DisplayInfo = () => {
               <div className="modal-footer bg-light">
                 <button className="btn btn-secondary" onClick={closeModal}>Cancel</button>
                 <button className="btn btn-primary" onClick={submitItem}>
-                  {isCreating ? 'Create Component' : 'Update Component'}
+                  {isCreating  ?  'Create Component' : 'Update Component'}
                 </button>
               </div>
             </div>

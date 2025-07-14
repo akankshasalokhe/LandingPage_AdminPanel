@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/Displayinfo.css';
 
+const initialDesc = { title: '', description: '' };
+const initialCategory = { title: '', description: '', image: null };
+
 const Servicepage = () => {
   const [services, setServices] = useState([]);
   const [selected, setSelected] = useState(null);
-  const [isCreating, setIsCreating] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -16,10 +18,11 @@ const Servicepage = () => {
 
   const fetchServices = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/page/get');
+      setLoading(true);
+      const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/servicepage/get');
       if (!res.ok) throw new Error('Cannot fetch services');
-      const data = await res.json();
-      setServices(data.data || []);
+      const { data = [] } = await res.json();
+      setServices(data);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -28,45 +31,54 @@ const Servicepage = () => {
   };
 
   const startCreate = () => {
-    setIsCreating(true);
+    setError(null);
     setSelected({
       servicetitle: '',
       serviceImage: null,
-      titleDescArray: [{ title: '', description: '' }],
-      categoryname: [{ title: '', description: '', image: null }],
+      titleDescArray: [{ ...initialDesc }],
+      categoryname: [{ ...initialCategory }],
+    });
+  };
+
+  const startEdit = (service) => {
+    setError(null);
+    setSelected({
+      ...service,
+      serviceImage: service.serviceImage || null,
+      titleDescArray: service.titleDescArray || [initialDesc],
+      categoryname: (service.categoryname || []).map(c => ({
+        title: c.title,
+        description: c.description,
+        image: Array.isArray(c.image) ? c.image[0] : c.image,
+      })),
     });
   };
 
   const handleChange = (e, field, i = null, sub = null) => {
     const val = e.target.value;
     setSelected(prev => {
-      const copy = { ...prev };
-      if (i !== null && sub !== null) copy[field][i][sub] = val;
-      else copy[field] = val;
-      return copy;
+      const updated = { ...prev };
+      if (i !== null && sub) updated[field][i][sub] = val;
+      else updated[field] = val;
+      return updated;
     });
   };
 
   const handleImage = (e, field, i = null) => {
-    const file = e.target.files[0];
+    const file = e.target.files?.[0];
     if (!file) return;
     setSelected(prev => {
-      const copy = { ...prev };
-      if (i !== null) copy[field][i].image = file;
-      else copy[field] = file;
-      return copy;
+      const updated = { ...prev };
+      if (i !== null) updated[field][i].image = file;
+      else updated[field] = file;
+      return updated;
     });
   };
 
   const addArr = field => {
     setSelected(prev => ({
       ...prev,
-      [field]: [
-        ...prev[field],
-        field === 'titleDescArray'
-          ? { title: '', description: '' }
-          : { title: '', description: '', image: null }
-      ]
+      [field]: [...prev[field], field === 'titleDescArray' ? { ...initialDesc } : { ...initialCategory }],
     }));
   };
 
@@ -78,39 +90,34 @@ const Servicepage = () => {
   };
 
   const submit = async () => {
-    if (!selected?.servicetitle?.trim()) return setError('Title is required');
+    if (!selected?.servicetitle?.trim()) return setError('Service title is required.');
     setSubmitting(true);
-    const method = isCreating ? 'POST' : 'PUT';
-    const url = isCreating
-      ? 'http://localhost:5000/api/page/add'
-      : `http://localhost:5000/api/page/update/${selected._id}`;
+    const isEditMode = !!selected?._id;
+    const method = isEditMode ? 'PUT' : 'POST';
+    const endpoint = isEditMode
+      ? `https://landing-page-backend-alpha.vercel.app/api/servicepage/update/${selected._id}`
+      : 'https://landing-page-backend-alpha.vercel.app/api/servicepage/add';
 
     const fd = new FormData();
     fd.append('servicetitle', selected.servicetitle);
-    if (selected.serviceImage instanceof File)
-      fd.append('serviceImage', selected.serviceImage);
+    if (selected.serviceImage instanceof File) fd.append('serviceImage', selected.serviceImage);
     fd.append('titleDescArray', JSON.stringify(selected.titleDescArray));
 
-   const cats = selected.categoryname.map((c, idx) => ({
-  title: c.title,
-  description: c.description,
-  tempImageName: c.image instanceof File ? c.image.name : '', // This is critical
-}));
-
-    fd.append('categoryname', JSON.stringify(cats));
-
-    selected.categoryname.forEach((c) => {
-      if (c.image instanceof File) {
-        fd.append('categoryImages', c.image);
-      }
+    const categoryInfo = selected.categoryname.map(cat => {
+      if (cat.image instanceof File) fd.append('categoryImages', cat.image);
+      return {
+        title: cat.title,
+        description: cat.description,
+        tempImageName: cat.image instanceof File ? cat.image.name : '',
+      };
     });
+    fd.append('categoryname', JSON.stringify(categoryInfo));
 
     try {
-      const res = await fetch(url, { method, body: fd });
-      if (!res.ok) throw new Error('Failed to save');
+      const res = await fetch(endpoint, { method, body: fd });
+      if (!res.ok) throw new Error('Save failed');
       await fetchServices();
       setSelected(null);
-      setIsCreating(false);
     } catch (e) {
       setError(e.message);
     } finally {
@@ -119,10 +126,9 @@ const Servicepage = () => {
   };
 
   const del = async id => {
+    if (!window.confirm('Really delete this item?')) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/page/delete/${id}`, {
-        method: 'DELETE'
-      });
+      const res = await fetch(`https://landing-page-backend-alpha.vercel.app/api/servicepage/delete/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
       await fetchServices();
     } catch (e) {
@@ -134,44 +140,31 @@ const Servicepage = () => {
 
   return (
     <div className="container py-5">
-      <h1 className="mb-5 text-center fw-bold fs-2 text-gradient">Services Dashboard</h1>
+      <h1 className="text-center fw-bold fs-2 text-gradient mb-4">Services Dashboard</h1>
 
       {error && <div className="alert alert-danger">{error}</div>}
 
       <div className="d-flex justify-content-end mb-4">
-        <button className="btn btn-primary" onClick={startCreate}>Create New Service</button>
+        <button className="btn btn-primary" onClick={startCreate}>New Service</button>
       </div>
 
       <div className="row">
         {services.map(s => (
-          <div key={s._id} className="col-12 col-sm-6 col-lg-3 mb-4">
-            <div className="card shadow-sm hover-card square-card text-center">
-              <div className="card-body">
-                <h6 className="card-title">{s.servicetitle}</h6>
+          <div key={s._id} className="col-sm-6 col-md-4 col-lg-3 mb-4">
+            <div className="card square-card hover-card">
+              <div className="card-body text-center">
+                <h5 className="card-title">{s.servicetitle}</h5>
                 {s.serviceImage && (
                   <img
                     src={s.serviceImage}
-                    className="img-fluid mb-3 mt-3"
-                    style={{ maxHeight: '150px' }}
-                    alt="service"
+                    alt="Service"
+                    className="img-fluid my-3 mt-4"
+                    style={{ maxHeight: 120 }}
                   />
                 )}
                 <div className="d-flex justify-content-center gap-2 mt-4">
-                  <button
-                    className="btn btn-sm btn-outline-primary"
-                    onClick={() => {
-                      setSelected({ ...s });
-                      setIsCreating(false);
-                    }}
-                  >
-                    Update
-                  </button>
-                  <button
-                    className="btn btn-sm btn-outline-danger"
-                    onClick={() => del(s._id)}
-                  >
-                    Delete
-                  </button>
+                  <button className="btn btn-sm btn-outline-primary " onClick={() => startEdit(s)}>Update</button>
+                  <button className="btn btn-sm btn-outline-danger" onClick={() => del(s._id)}>Delete</button>
                 </div>
               </div>
             </div>
@@ -179,127 +172,82 @@ const Servicepage = () => {
         ))}
       </div>
 
-      {(selected || isCreating) && selected && (
-        <div className="modal d-block bg-dark bg-opacity-50">
-          <div className="modal-dialog modal-lg modal-dialog-centered animate-modal">
+      {selected && (
+        <div className="modal d-block bg-dark bg-opacity-50 animate-modal">
+          <div className="modal-dialog modal-lg">
             <div className="modal-content">
+
               <div className="modal-header bg-primary text-white">
-                <h5>
-                  {isCreating ? 'Create Service' : `Edit: ${selected.servicetitle}`}
-                </h5>
-                <button
-                  className="btn-close btn-close-white"
-                  onClick={() => setSelected(null)}
-                />
+                <h5 className="modal-title">{selected._id ? `Edit: ${selected.servicetitle}` : 'Create Service'}</h5>
+                <button className="btn-close btn-close-white" onClick={() => setSelected(null)} />
               </div>
-              <div className="modal-body" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+
+              <div className="modal-body">
                 <div className="mb-3">
-                  <label>Service Title</label>
-                  <input
-                    className="form-control"
-                    value={selected.servicetitle}
-                    onChange={e => handleChange(e, 'servicetitle')}
-                  />
+                  <label>Service Title *</label>
+                  <input className="form-control" value={selected.servicetitle} onChange={e => handleChange(e, 'servicetitle')} />
                 </div>
 
                 <div className="mb-4">
-                  <label>Service Image</label><br />
+                  <label>Service Image</label>
                   {typeof selected.serviceImage === 'string' && (
-                    <img
-                      src={selected.serviceImage}
-                      className="img-thumbnail my-2"
-                      style={{ maxWidth: '150px' }}
-                      alt="preview"
-                    />
+                    <img src={selected.serviceImage} alt="" className="img-thumbnail mb-2" style={{ maxWidth: 150 }} />
                   )}
-                  <input
-                    type="file"
-                    className="form-control"
-                    onChange={e => handleImage(e, 'serviceImage')}
-                  />
+                  <input type="file" className="form-control" onChange={e => handleImage(e, 'serviceImage')} />
                 </div>
 
-                <h6 className="mb-3">Title & Description Points</h6>
-                {selected.titleDescArray.map((it, i) => (
-                  <div key={i} className="border rounded p-3 mb-3 bg-light">
+                <h6>Title & Description Points</h6>
+                {selected.titleDescArray.map((td, i) => (
+                  <div key={i} className="mb-3 p-3 bg-light rounded">
                     <input
-                      placeholder="Title"
-                      value={it.title}
                       className="form-control mb-2"
+                      placeholder="Title"
+                      value={td.title}
                       onChange={e => handleChange(e, 'titleDescArray', i, 'title')}
                     />
                     <textarea
-                      placeholder="Description"
                       className="form-control mb-2"
-                      value={it.description}
+                      placeholder="Description"
+                      value={td.description}
                       onChange={e => handleChange(e, 'titleDescArray', i, 'description')}
                     />
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => remArr('titleDescArray', i)}
-                    >
-                      Remove
-                    </button>
+                    <button className="btn btn-sm btn-danger" onClick={() => remArr('titleDescArray', i)}>Remove</button>
                   </div>
                 ))}
-                <button
-                  className="btn btn-sm btn-success mb-4"
-                  onClick={() => addArr('titleDescArray')}
-                >
-                  Add Point
-                </button>
+                <button className="btn btn-sm btn-success mb-4" onClick={() => addArr('titleDescArray')}>Add Point</button>
 
-                <h6 className="mb-3">Categories</h6>
+                <h6>Categories</h6>
                 {selected.categoryname.map((cat, i) => (
-                  <div key={i} className="border rounded p-3 mb-3 bg-light">
+                  <div key={i} className="mb-3 p-3 bg-light rounded">
                     {typeof cat.image === 'string' && (
-                      <img
-                        src={cat.image}
-                        className="img-thumbnail mb-2"
-                        style={{ maxWidth: '120px' }}
-                        alt="category"
-                      />
+                      <img src={cat.image} alt="" className="img-thumbnail mb-2" style={{ maxWidth: 120 }} />
                     )}
+                    <input type="file" className="form-control mb-2" onChange={e => handleImage(e, 'categoryname', i)} />
                     <input
-                      type="file"
                       className="form-control mb-2"
-                      onChange={e => handleImage(e, 'categoryname', i)}
-                    />
-                    <input
-                      placeholder="Title"
-                      className="form-control mb-2"
+                      placeholder="Category Title"
                       value={cat.title}
                       onChange={e => handleChange(e, 'categoryname', i, 'title')}
                     />
                     <textarea
-                      placeholder="Description"
                       className="form-control mb-2"
+                      placeholder="Category Description"
                       value={cat.description}
                       onChange={e => handleChange(e, 'categoryname', i, 'description')}
                     />
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => remArr('categoryname', i)}
-                    >
-                      Remove
-                    </button>
+                    <button className="btn btn-sm btn-danger" onClick={() => remArr('categoryname', i)}>Remove</button>
                   </div>
                 ))}
-                <button
-                  className="btn btn-sm btn-success"
-                  onClick={() => addArr('categoryname')}
-                >
-                  Add Category
-                </button>
+                <button className="btn btn-sm btn-success" onClick={() => addArr('categoryname')}>Add Category</button>
               </div>
+
               <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setSelected(null)}>
-                  Cancel
-                </button>
-                <button className="btn btn-primary" onClick={submit} disabled={submitting}>
-                  {submitting ? 'Saving...' : isCreating ? 'Create' : 'Update'}
+                <button className="btn btn-secondary" onClick={() => setSelected(null)}>Cancel</button>
+                <button className="btn btn-primary  " onClick={submit} disabled={submitting}>
+                    {submitting ? 'Saving...' : (selected._id ? 'Update' : 'Create')}
                 </button>
               </div>
+
             </div>
           </div>
         </div>

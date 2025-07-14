@@ -7,7 +7,7 @@ const StaticPageEditor = ({ type, label }) => {
   const [content, setContent] = useState("");
 
   useEffect(() => {
-    fetch(`http://localhost:5000/api/static/get/${type}`)
+    fetch(`https://landing-page-backend-alpha.vercel.app/api/staticpage/get/${type}`)
       .then((res) => res.json())
       .then((data) => setContent(data.content || ""))
       .catch((err) => {
@@ -17,7 +17,7 @@ const StaticPageEditor = ({ type, label }) => {
   }, [type]);
 
   const handleSave = () => {
-    fetch(`http://localhost:5000/api/static/create/${type}`, {
+    fetch(`https://landing-page-backend-alpha.vercel.app/api/staticpage/create/${type}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

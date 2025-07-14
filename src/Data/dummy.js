@@ -31,6 +31,7 @@ import { GoNumber } from "react-icons/go";
 import { MdOutlineDesignServices } from "react-icons/md";
 import { IoIosCall } from "react-icons/io";
 import { MdPolicy } from "react-icons/md";
+import { MdOutlineImage } from "react-icons/md";
 
 import avatar from './avatar.jpg';
 import avatar2 from './avatar2.jpg';
@@ -548,6 +549,10 @@ export const links = [
       {
         name: 'Count',
         icon: <GoNumber />,
+      },
+      {
+        name: 'Gallery',
+        icon: <MdOutlineImage />,
       },
 
       {

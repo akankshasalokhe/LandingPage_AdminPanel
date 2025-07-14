@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import './css/Displayinfo.css';
+import './css/Testimonial.css'; 
 
 const Testimonial = () => {
   const [testimonials, setTestimonials] = useState([]);
@@ -16,7 +16,7 @@ const Testimonial = () => {
 
   const fetchTestimonials = async () => {
     try {
-      const response = await fetch('https://biz-booster-landingpage-backend.vercel.app/api/testimonial/get');
+      const response = await fetch('http://localhost:5001/api/testimonial/get');
       if (!response.ok) throw new Error('Failed to fetch testimonials');
       const data = await response.json();
       setTestimonials(data || []);
@@ -71,7 +71,7 @@ const Testimonial = () => {
         formData.append('image', selectedTestimonial.image);
       }
 
-      const response = await fetch('https://biz-booster-landingpage-backend.vercel.app/api/testimonial/upload', {
+      const response = await fetch('https://landing-page-backend-alpha.vercel.app/api/testimonial/upload', {
         method: 'POST',
         body: formData,
       });
@@ -103,7 +103,7 @@ const Testimonial = () => {
         formData.append('image', selectedTestimonial.image);
       }
 
-      const response = await fetch(`https://biz-booster-landingpage-backend.vercel.app/api/testimonial/update/${selectedTestimonial._id}`, {
+      const response = await fetch(`https://landing-page-backend-alpha.vercel.app/api/testimonial/update/${selectedTestimonial._id}`, {
         method: 'PATCH',
         body: formData,
       });
@@ -125,7 +125,7 @@ const Testimonial = () => {
     if (!id) return;
     
     try {
-      const response = await fetch(`https://biz-booster-landingpage-backend.vercel.app/api/testimonial/delete/${id}`, {
+      const response = await fetch(`https://landing-page-backend-alpha.vercel.app/api/testimonial/delete/${id}`, {
         method: 'DELETE',
       });
 
@@ -180,50 +180,53 @@ const Testimonial = () => {
         </button>
       </div>
 
-      <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-        {testimonials.map((testimonial) => (
-          <div key={testimonial?._id} className="col">
-            <div className="card h-100 shadow-sm border-0 hover-card">
-              <div className="card-body d-flex flex-column">
-                <div className="d-flex align-items-center mb-3">
-                  {testimonial?.image && (
-                    <img 
-                      src={testimonial.image} 
-                      alt={testimonial?.name || 'Testimonial'} 
-                      className="rounded-circle me-3"
-                      style={{ width: '60px', height: '60px', objectFit: 'cover' }}
-                    />
-                  )}
-                  <div>
-                    <h5 className="mb-1">{testimonial?.name || 'Anonymous'}</h5>
-                    <small className="text-muted">{testimonial?.location || 'Unknown location'}</small>
-                    {renderStars(testimonial?.rating)}
-                  </div>
-                </div>
-                <p className="flex-grow-1">"{testimonial?.description || 'No description provided'}"</p>
-                <div className="d-flex justify-content-end gap-2 mt-3">
-                  <button
-                    className="btn btn-sm btn-outline-primary d-flex align-items-center"
-                    onClick={() => {
-                      setSelectedTestimonial(testimonial || null);
-                      setIsCreating(false);
-                      setImagePreview(null);
-                    }}
-                  >
-                    <i className="bi bi-pencil me-1"></i> Update
-                  </button>
-                  <button
-                    className="btn btn-sm btn-outline-danger d-flex align-items-center"
-                    onClick={() => testimonial?._id && deleteTestimonial(testimonial._id)}
-                  >
-                    <i className="bi bi-trash me-1"></i> Delete
-                  </button>
-                </div>
-              </div>
+
+
+      <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-xl-4 g-4">
+  {testimonials.map((testimonial) => (
+    <div key={testimonial?._id} className="col">
+      <div className="card shadow-sm border-0 h-100">
+        <div className="card-body d-flex flex-column">
+          <div className="d-flex align-items-center mb-3">
+            {testimonial?.image && (
+              <img 
+                src={testimonial.image} 
+                alt={testimonial?.name || 'Testimonial'} 
+                className="rounded-circle me-3 flex-shrink-0"
+                style={{ width: '60px', height: '60px', objectFit: 'cover' }}
+              />
+            )}
+            <div className="flex-grow-1">
+              <h5 className="mb-1 text-truncate">{testimonial?.name || 'Anonymous'}</h5>
+              <small className="text-muted text-truncate d-block">{testimonial?.location || 'Unknown location'}</small>
+              {renderStars(testimonial?.rating)}
             </div>
           </div>
-        ))}
+          <p className="flex-grow-1">"{testimonial?.description || 'No description provided'}"</p>
+          <div className="d-flex justify-content-end gap-2 mt-3">
+            <button
+              className="btn btn-sm btn-outline-primary d-flex align-items-center"
+              onClick={() => {
+                setSelectedTestimonial(testimonial || null);
+                setIsCreating(false);
+                setImagePreview(null);
+              }}
+            >
+              <i className="bi bi-pencil me-1"></i> Update
+            </button>
+            <button
+              className="btn btn-sm btn-outline-danger d-flex align-items-center"
+              onClick={() => testimonial?._id && deleteTestimonial(testimonial._id)}
+            >
+              <i className="bi bi-trash me-1"></i> Delete
+            </button>
+          </div>
+        </div>
       </div>
+    </div>
+  ))}
+      </div>
+
 
       {(selectedTestimonial || isCreating) && (
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>

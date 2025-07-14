@@ -1,0 +1,77 @@
+/* Testimonial.css */
+/* Prevent unnecessary scrollbars */
+body {
+  overflow-x: hidden;
+}
+
+/* Optional card hover */
+.card:hover {
+  transform: translateY(-4px);
+  transition: 0.3s ease;
+}
+
+/* Responsive image */
+.card img {
+  max-width: 100%;
+  height: auto;
+}
+
+
+.text-gradient {
+  background: linear-gradient(to right, #6a11cb, #2575fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  transition: 0.3s ease-in-out;
+}
+
+/* Smooth modal transition */
+.animate-modal {
+  animation: slideUp 0.3s ease-in-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Responsive image preview */
+.img-thumbnail {
+  max-width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Make modal content scrollable when tall */
+.modal-content {
+  max-height: 90vh;
+  overflow-y: auto;
+  border-radius: 12px;
+}
+
+/* Prevent scrollbar when modal open */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Optional: modern-style inputs */
+.modern-input {
+  border-radius: 0.375rem;
+  border: 1px solid #ced4da;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.modern-input:focus {
+  border-color: #2575fc;
+  box-shadow: 0 0 0 0.2rem rgba(37, 117, 252, 0.25);
+}
