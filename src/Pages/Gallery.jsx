@@ -10,7 +10,7 @@ const Gallery = () => {
     title: '',
     category: 'Awards',
     year: '',
-    image: null,
+    image: null, // can be File or string (URL)
   });
   const [editId, setEditId] = useState(null);
   const [alert, setAlert] = useState({ type: '', message: '' });
@@ -23,8 +23,8 @@ const Gallery = () => {
       if (data && Array.isArray(data.data)) {
         setGalleryItems(data.data);
       } else {
-        setGalleryItems([]);
         console.error('Unexpected gallery response structure:', data);
+        setGalleryItems([]);
       }
     } catch (err) {
       console.error('Failed to fetch gallery:', err);
@@ -57,23 +57,33 @@ const Gallery = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      let src = formData.image;
+      let src = '';
+
       if (formData.image instanceof File) {
         src = await handleImageUpload();
+      } else if (typeof formData.image === 'string') {
+        src = formData.image;
+      } else {
+        throw new Error('Please select an image.');
       }
 
-      const payload = { ...formData, src };
-      const options = {
-        method: editId ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+      const payload = {
+        title: formData.title,
+        category: formData.category,
+        year: formData.category === 'Events' ? formData.year : '',
+        src,
       };
 
       const endpoint = editId
         ? `https://landing-page-backend-alpha.vercel.app/api/gallery/update/${editId}`
         : 'https://landing-page-backend-alpha.vercel.app/api/gallery/create';
 
-      const res = await fetch(endpoint, options);
+      const res = await fetch(endpoint, {
+        method: editId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
       const data = await res.json();
 
       if (!res.ok) throw new Error(data.message || 'Failed to save item.');
@@ -207,6 +217,7 @@ const Gallery = () => {
               <Form.Label>Image</Form.Label>
               <Form.Control
                 type="file"
+                accept="image/*"
                 onChange={e => setFormData({ ...formData, image: e.target.files[0] })}
               />
               {formData.image && typeof formData.image === 'string' && (
