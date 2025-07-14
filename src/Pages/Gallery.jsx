@@ -20,9 +20,15 @@ const Gallery = () => {
     try {
       const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/gallery/get');
       const data = await res.json();
-      setGalleryItems(data);
+      console.log('Gallery response:', data); // Debugging
+      if (data && Array.isArray(data.data)) {
+        setGalleryItems(data.data);
+      } else {
+        setGalleryItems([]); // fallback
+        console.error('Unexpected gallery response structure:', data);
+      }
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch gallery:', err);
     }
     setLoading(false);
   };
@@ -55,7 +61,9 @@ const Gallery = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       };
-      const endpoint = editId ? `https://landing-page-backend-alpha.vercel.app/api/gallery/update/${editId}` : 'https://landing-page-backend-alpha.vercel.app/api/gallery/create';
+      const endpoint = editId
+        ? `https://landing-page-backend-alpha.vercel.app/api/gallery/update/${editId}`
+        : 'https://landing-page-backend-alpha.vercel.app/api/gallery/create';
       await fetch(endpoint, options);
       setShowModal(false);
       setFormData({ title: '', category: 'Awards', year: '', image: null });
@@ -79,7 +87,9 @@ const Gallery = () => {
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure to delete this item?')) {
-      await fetch(`https://landing-page-backend-alpha.vercel.app/api/gallery/delete/${id}`, { method: 'DELETE' });
+      await fetch(`https://landing-page-backend-alpha.vercel.app/api/gallery/delete/${id}`, {
+        method: 'DELETE',
+      });
       fetchGallery();
     }
   };
