@@ -1,206 +1,179 @@
-// src/pages/GalleryManager.jsx
+// src/pages/AdminGalleryPage.jsx
 import React, { useEffect, useState } from 'react';
-import { Button, Card, Row, Col, Modal, Form } from 'react-bootstrap';
+import { Button, Form, Modal, Table, Spinner } from 'react-bootstrap';
 import './css/Gallery.css';
 
-// const API_BASE = 'http://localhost:5001/api/gallery';
-
 const Gallery = () => {
-  const [galleryData, setGalleryData] = useState({});
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [formData, setFormData] = useState({
     title: '',
     category: 'Awards',
     year: '',
     image: null,
   });
+  const [editId, setEditId] = useState(null);
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const loadGallery = async () => {
+  const fetchGallery = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5001/api/gallery/get`);
+      const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/gallery/get');
       const data = await res.json();
-      setGalleryData(data);
+      setGalleryItems(data);
     } catch (err) {
       console.error(err);
-      setError('Failed to load gallery data.');
     }
+    setLoading(false);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this item?')) {
-      try {
-        await fetch(`http://localhost:5001/api/gallery/delete/${id}`, { method: 'DELETE' });
-        loadGallery();
-      } catch (err) {
-        console.error(err);
-        setError('Failed to delete item.');
-      }
-    }
-  };
+  useEffect(() => {
+    fetchGallery();
+  }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setForm((prev) => ({ ...prev, image: file }));
-    }
+  const handleImageUpload = async () => {
+    const form = new FormData();
+    form.append('image', formData.image);
+    const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/gallery/upload', {
+      method: 'POST',
+      body: form,
+    });
+    const data = await res.json();
+    return data.url;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!form.title || !form.category || !form.image || (form.category === 'Events' && !form.year)) {
-      setError('Please fill all required fields.');
-      return;
-    }
-
-    setLoading(true);
-    const data = new FormData();
-    data.append('title', form.title);
-    data.append('category', form.category);
-    if (form.category === 'Events') data.append('year', form.year);
-    data.append('image', form.image);
-
     try {
-      const res = await fetch(`http://localhost:5001/api/gallery/upload`, {
-        method: 'POST',
-        body: data,
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.msg || 'Upload failed');
+      let src = formData.image;
+      if (formData.image instanceof File) {
+        src = await handleImageUpload();
       }
-
-      await loadGallery();
-      setShowForm(false);
-      setForm({ title: '', category: 'Awards', year: '', image: null });
-      setError('');
+      const payload = { ...formData, src };
+      const options = {
+        method: editId ? 'PUT' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      };
+      const endpoint = editId ? `https://landing-page-backend-alpha.vercel.app/api/gallery/update/${editId}` : 'https://landing-page-backend-alpha.vercel.app/api/gallery/create';
+      await fetch(endpoint, options);
+      setShowModal(false);
+      setFormData({ title: '', category: 'Awards', year: '', image: null });
+      setEditId(null);
+      fetchGallery();
     } catch (err) {
       console.error(err);
-      setError(err.message || 'Upload failed');
-    } finally {
-      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadGallery();
-  }, []);
+  const handleEdit = (item) => {
+    setFormData({
+      title: item.title,
+      category: item.category,
+      year: item.year || '',
+      image: item.src,
+    });
+    setEditId(item._id);
+    setShowModal(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm('Are you sure to delete this item?')) {
+      await fetch(`https://landing-page-backend-alpha.vercel.app/api/gallery/delete/${id}`, { method: 'DELETE' });
+      fetchGallery();
+    }
+  };
 
   return (
-    <div className="p-4 gallery-wrapper">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h2 className="gallery-title">Gallery</h2>
-        <Button onClick={() => setShowForm(true)}> Add Gallery Item</Button>
-      </div>
+    <div className="admin-gallery-container">
+      <h2>Gallery Management</h2>
+      <Button onClick={() => setShowModal(true)} className="mb-3">
+        Add Gallery Item
+      </Button>
 
-      {error && <div className="alert alert-danger">{error}</div>}
-
-      {['Awards', 'Certifications', 'Ceremony'].map((category) => (
-        <div key={category} className="mb-5">
-          <h4 className="text-primary">{category}</h4>
-          <Row>
-            {galleryData[category]?.map((item) => (
-              <Col md={4} key={item._id} className="mb-3">
-                <Card className="gallery-card">
-                  <Card.Img variant="top" src={item.imageUrl} className="gallery-image" />
-                  <Card.Body>
-                    <Card.Title>{item.title}</Card.Title>
-                    <Button variant="danger" size="sm" onClick={() => handleDelete(item._id)}>Delete</Button>
-                  </Card.Body>
-                </Card>
-              </Col>
+      {loading ? (
+        <Spinner animation="border" />
+      ) : (
+        <Table striped bordered hover responsive>
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Year</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {galleryItems.map(item => (
+              <tr key={item._id}>
+                <td><img src={item.src} alt={item.title} className="thumb-img" /></td>
+                <td>{item.title}</td>
+                <td>{item.category}</td>
+                <td>{item.year}</td>
+                <td>
+                  <Button variant="warning" size="sm" onClick={() => handleEdit(item)}>
+                    Edit
+                  </Button>{' '}
+                  <Button variant="danger" size="sm" onClick={() => handleDelete(item._id)}>
+                    Delete
+                  </Button>
+                </td>
+              </tr>
             ))}
-          </Row>
-        </div>
-      ))}
+          </tbody>
+        </Table>
+      )}
 
-      <div>
-        <h4 className="text-primary">Events</h4>
-        {galleryData.Events &&
-          Object.keys(galleryData.Events).map((year) => (
-            <div key={year} className="mb-4">
-              <h5 className="text-secondary">{year}</h5>
-              <Row>
-                {galleryData.Events[year].map((item) => (
-                  <Col md={4} key={item._id} className="mb-3">
-                    <Card className="gallery-card">
-                      <Card.Img variant="top" src={item.imageUrl} className="gallery-image" />
-                      <Card.Body>
-                        <Card.Title>{item.title}</Card.Title>
-                        <Button variant="danger" size="sm" onClick={() => handleDelete(item._id)}>Delete</Button>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </div>
-          ))}
-      </div>
-
-      {/* Modal Form */}
-      <Modal show={showForm} onHide={() => setShowForm(false)} centered>
+      <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
-          <Modal.Title>Add Gallery Item</Modal.Title>
+          <Modal.Title>{editId ? 'Edit' : 'Add'} Gallery Item</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handleSubmit} encType="multipart/form-data">
-            <Form.Group className="mb-3">
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-2">
               <Form.Label>Title</Form.Label>
               <Form.Control
                 type="text"
-                name="title"
-                value={form.title}
-                onChange={handleChange}
+                value={formData.title}
+                onChange={e => setFormData({ ...formData, title: e.target.value })}
                 required
               />
             </Form.Group>
-
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-2">
               <Form.Label>Category</Form.Label>
-              <Form.Select name="category" value={form.category} onChange={handleChange}>
-                <option value="Awards">Awards</option>
-                <option value="Certifications">Certifications</option>
-                <option value="Ceremony">Ceremony</option>
-                <option value="Events">Events</option>
+              <Form.Select
+                value={formData.category}
+                onChange={e => setFormData({ ...formData, category: e.target.value })}
+              >
+                <option>Awards</option>
+                <option>Certifications</option>
+                <option>Ceremony</option>
+                <option>Events</option>
               </Form.Select>
             </Form.Group>
-
-            {form.category === 'Events' && (
-              <Form.Group className="mb-3">
+            {formData.category === 'Events' && (
+              <Form.Group className="mb-2">
                 <Form.Label>Year</Form.Label>
                 <Form.Control
                   type="text"
-                  name="year"
-                  value={form.year}
-                  onChange={handleChange}
-                  placeholder="e.g. 2025"
-                  required
+                  value={formData.year}
+                  onChange={e => setFormData({ ...formData, year: e.target.value })}
                 />
               </Form.Group>
             )}
-
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-2">
               <Form.Label>Image</Form.Label>
               <Form.Control
                 type="file"
-                name="image"
-                accept="image/*"
-                onChange={handleImageChange}
-                required
+                onChange={e => setFormData({ ...formData, image: e.target.files[0] })}
               />
+              {formData.image && typeof formData.image === 'string' && (
+                <img src={formData.image} alt="preview" className="thumb-img mt-2" />
+              )}
             </Form.Group>
-
-            <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? 'Uploading...' : 'Upload'}
+            <Button type="submit" variant="primary">
+              {editId ? 'Update' : 'Add'}
             </Button>
           </Form>
         </Modal.Body>

@@ -46,7 +46,6 @@ import TermsAndConditions from './Pages/TermsAndCondition';
 import ReturnAndRefund from './Pages/ReturnAndRefund';
 import AboutUs from './Pages/AboutUs';
 import Gallery from './Pages/Gallery';
-import GalleryManager from './Pages/Gallery';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(

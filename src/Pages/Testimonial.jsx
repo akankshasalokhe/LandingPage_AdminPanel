@@ -16,7 +16,7 @@ const Testimonial = () => {
 
   const fetchTestimonials = async () => {
     try {
-      const response = await fetch('http://localhost:5001/api/testimonial/get');
+      const response = await fetch('https://landing-page-backend-alpha.vercel.app/api/testimonial/get');
       if (!response.ok) throw new Error('Failed to fetch testimonials');
       const data = await response.json();
       setTestimonials(data || []);

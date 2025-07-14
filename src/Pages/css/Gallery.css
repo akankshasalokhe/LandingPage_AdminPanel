@@ -1,34 +1,65 @@
-.gallery-wrapper {
-  background-color: #f9f9f9;
-  min-height: 100vh;
+/* src/pages/AdminGallery.css */
+
+.admin-gallery-container {
+  padding: 20px;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.admin-gallery-container h2 {
+  font-size: 2rem;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.thumb-img {
+  height: 80px;
+  width: auto;
   border-radius: 8px;
-}
-
-.gallery-title {
-  font-size: 2.4rem;
-  font-weight: 700;
-  color: #2c3e50;
-}
-
-.gallery-card {
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-  border: none;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.gallery-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
-}
-
-.gallery-image {
-  height: 250px;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  max-width: 100%;
 }
 
-.gallery-image:hover {
-  transform: scale(1.05);
+.table {
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .admin-gallery-container h2 {
+    font-size: 1.5rem;
+  }
+
+  .thumb-img {
+    height: 60px;
+  }
+
+  .table th,
+  .table td {
+    font-size: 0.85rem;
+  }
+
+  .btn-sm {
+    font-size: 0.75rem;
+    padding: 2px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .thumb-img {
+    height: 50px;
+  }
+
+  .table th,
+  .table td {
+    font-size: 0.75rem;
+  }
+
+  .btn-sm {
+    font-size: 0.7rem;
+  }
+
+  .modal-body {
+    font-size: 0.9rem;
+  }
 }
