@@ -1,101 +1,115 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Form, Modal, Table, Spinner } from 'react-bootstrap';
+import {
+  Button, Modal, Form, Table, Spinner, Container, Row, Col, Pagination,
+} from 'react-bootstrap';
 import './css/Gallery.css';
 
 const Gallery = () => {
   const [galleryItems, setGalleryItems] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [filteredItems, setFilteredItems] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     category: 'Awards',
     year: '',
-    image: null, // can be File or string (URL)
+    src: '',
   });
-  const [editId, setEditId] = useState(null);
-  const [alert, setAlert] = useState({ type: '', message: '' });
+  const [imageFile, setImageFile] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
-  const fetchGallery = async () => {
-    setLoading(true);
+  // Fetch gallery items
+  const fetchItems = async () => {
     try {
       const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/gallery/get');
       const data = await res.json();
-      if (data && Array.isArray(data.data)) {
-        setGalleryItems(data.data);
-      } else {
-        console.error('Unexpected gallery response structure:', data);
-        setGalleryItems([]);
-      }
+      setGalleryItems(data.data || []);
     } catch (err) {
-      console.error('Failed to fetch gallery:', err);
+      console.error('Error fetching items:', err);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
-    fetchGallery();
+    fetchItems();
   }, []);
 
   useEffect(() => {
-    if (alert.message) {
-      const timeout = setTimeout(() => setAlert({ type: '', message: '' }), 3000);
-      return () => clearTimeout(timeout);
-    }
-  }, [alert]);
+    filterAndPaginate();
+  }, [galleryItems, selectedCategory, currentPage]);
 
-  const handleImageUpload = async () => {
-    const form = new FormData();
-    form.append('image', formData.image);
-    const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/gallery/upload', {
-      method: 'POST',
-      body: form,
-    });
-    const data = await res.json();
-    return data.url;
+  const filterAndPaginate = () => {
+    let items = [...galleryItems];
+    if (selectedCategory !== 'All') {
+      items = items.filter(item => item.category === selectedCategory);
+    }
+    setFilteredItems(items);
   };
 
+  // Handle form submit (already correct)
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      let src = '';
+    setLoading(true);
 
-      if (formData.image instanceof File) {
-        src = await handleImageUpload();
-      } else if (typeof formData.image === 'string') {
-        src = formData.image;
-      } else {
-        throw new Error('Please select an image.');
+    try {
+      let imageUrl = formData.src;
+
+      if (imageFile) {
+        const form = new FormData();
+        form.append('image', imageFile);
+
+        const resUpload = await fetch('https://landing-page-backend-alpha.vercel.app/api/gallery/upload', {
+          method: 'POST',
+          body: form,
+        });
+
+        const uploadData = await resUpload.json();
+        if (!uploadData.url) throw new Error('Image upload failed');
+        imageUrl = uploadData.url;
       }
 
       const payload = {
-        title: formData.title,
-        category: formData.category,
-        year: formData.category === 'Events' ? formData.year : '',
-        src,
+        ...formData,
+        src: imageUrl,
       };
 
-      const endpoint = editId
-        ? `https://landing-page-backend-alpha.vercel.app/api/gallery/update/${editId}`
-        : 'https://landing-page-backend-alpha.vercel.app/api/gallery/create';
+      const response = await fetch(
+        editingId
+          ? `https://landing-page-backend-alpha.vercel.app/api/gallery/update/${editingId}`
+          : 'https://landing-page-backend-alpha.vercel.app/api/gallery/create',
+        {
+          method: editingId ? 'PUT' : 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        }
+      );
 
-      const res = await fetch(endpoint, {
-        method: editId ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
+      if (!response.ok) throw new Error('Submit failed');
 
-      const data = await res.json();
-
-      if (!res.ok) throw new Error(data.message || 'Failed to save item.');
-
-      setAlert({ type: 'success', message: `Gallery item ${editId ? 'updated' : 'added'} successfully.` });
+      setFormData({ title: '', category: 'Awards', year: '', src: '' });
+      setImageFile(null);
+      setEditingId(null);
       setShowModal(false);
-      setFormData({ title: '', category: 'Awards', year: '', image: null });
-      setEditId(null);
-      fetchGallery();
+      fetchItems();
     } catch (err) {
-      console.error(err);
-      setAlert({ type: 'danger', message: err.message || 'Something went wrong.' });
+      console.error('Error submitting:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Delete this item?')) return;
+
+    try {
+      await fetch(`https://landing-page-backend-alpha.vercel.app/api/gallery/delete/${id}`, { method: 'DELETE' });
+      fetchItems();
+    } catch (err) {
+      console.error('Delete error:', err);
     }
   };
 
@@ -104,98 +118,117 @@ const Gallery = () => {
       title: item.title,
       category: item.category,
       year: item.year || '',
-      image: item.src,
+      src: item.src,
     });
-    setEditId(item._id);
+    setEditingId(item._id);
     setShowModal(true);
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure to delete this item?')) {
-      try {
-        const res = await fetch(`https://landing-page-backend-alpha.vercel.app/api/gallery/delete/${id}`, {
-          method: 'DELETE',
-        });
-        const data = await res.json();
+  // Pagination logic
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+  const paginatedItems = filteredItems.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
-        if (!res.ok) throw new Error(data.message || 'Failed to delete.');
-
-        setAlert({ type: 'success', message: 'Gallery item deleted successfully.' });
-        fetchGallery();
-      } catch (err) {
-        console.error(err);
-        setAlert({ type: 'danger', message: err.message || 'Failed to delete item.' });
-      }
-    }
+  const handlePageChange = (pageNum) => {
+    setCurrentPage(pageNum);
   };
 
   return (
-    <div className="admin-gallery-container">
-      <h2>Gallery Management</h2>
-      <Button onClick={() => setShowModal(true)} className="mb-3">
-        Add Gallery Item
-      </Button>
+    <Container className="gallery-container mt-4">
+      <Row className="mb-3">
+        <Col><h3>Gallery Management</h3></Col>
+        <Col className="text-end">
+          <Button className="add-button" onClick={() => setShowModal(true)}>
+            Add New
+          </Button>
+        </Col>
+      </Row>
 
-      {alert.message && (
-        <div className={`alert alert-${alert.type} mb-3`} role="alert">
-          {alert.message}
-        </div>
-      )}
+      <Row className="mb-3">
+        <Col md={3}>
+          <Form.Select value={selectedCategory} onChange={(e) => {
+            setSelectedCategory(e.target.value);
+            setCurrentPage(1);
+          }}>
+            <option value="All">All Categories</option>
+            <option value="Awards">Awards</option>
+            <option value="Certifications">Certifications</option>
+            <option value="Ceremony">Ceremony</option>
+            <option value="Events">Events</option>
+          </Form.Select>
+        </Col>
+      </Row>
 
-      {loading ? (
-        <Spinner animation="border" />
-      ) : (
-        <Table striped bordered hover responsive>
-          <thead>
-            <tr>
-              <th>Image</th>
-              <th>Title</th>
-              <th>Category</th>
-              <th>Year</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {galleryItems.map(item => (
+      <Table responsive bordered hover className="gallery-table">
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Year</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paginatedItems.length === 0 ? (
+            <tr><td colSpan="5">No gallery items found.</td></tr>
+          ) : (
+            paginatedItems.map((item) => (
               <tr key={item._id}>
-                <td><img src={item.src} alt={item.title} className="thumb-img" /></td>
+                <td>
+                  <img src={item.src} alt={item.title} width="100" />
+                </td>
                 <td>{item.title}</td>
                 <td>{item.category}</td>
-                <td>{item.year}</td>
+                <td>{item.year || '-'}</td>
                 <td>
-                  <Button variant="warning" size="sm" onClick={() => handleEdit(item)}>
-                    Edit
-                  </Button>{' '}
-                  <Button variant="danger" size="sm" onClick={() => handleDelete(item._id)}>
-                    Delete
-                  </Button>
+                  <Button variant="warning" size="sm" className="action-button" onClick={() => handleEdit(item)}>Edit</Button>{' '}
+                  <Button variant="danger" size="sm" className="action-button" onClick={() => handleDelete(item._id)}>Delete</Button>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </Table>
+            ))
+          )}
+        </tbody>
+      </Table>
+
+      {totalPages > 1 && (
+        <Pagination className="justify-content-center">
+          {[...Array(totalPages).keys()].map((page) => (
+            <Pagination.Item
+              key={page + 1}
+              active={page + 1 === currentPage}
+              onClick={() => handlePageChange(page + 1)}
+            >
+              {page + 1}
+            </Pagination.Item>
+          ))}
+        </Pagination>
       )}
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      {/* Modal */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{editId ? 'Edit' : 'Add'} Gallery Item</Modal.Title>
+          <Modal.Title>{editingId ? 'Edit Gallery Item' : 'Add Gallery Item'}</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-2">
+          <Form className="modal-form" onSubmit={handleSubmit}>
+            <Form.Group className="mb-3">
               <Form.Label>Title</Form.Label>
               <Form.Control
                 type="text"
-                value={formData.title}
-                onChange={e => setFormData({ ...formData, title: e.target.value })}
                 required
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
               />
             </Form.Group>
-            <Form.Group className="mb-2">
+
+            <Form.Group className="mb-3">
               <Form.Label>Category</Form.Label>
               <Form.Select
                 value={formData.category}
-                onChange={e => setFormData({ ...formData, category: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               >
                 <option>Awards</option>
                 <option>Certifications</option>
@@ -203,34 +236,42 @@ const Gallery = () => {
                 <option>Events</option>
               </Form.Select>
             </Form.Group>
+
             {formData.category === 'Events' && (
-              <Form.Group className="mb-2">
+              <Form.Group className="mb-3">
                 <Form.Label>Year</Form.Label>
                 <Form.Control
                   type="text"
+                  required
                   value={formData.year}
-                  onChange={e => setFormData({ ...formData, year: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, year: e.target.value })}
                 />
               </Form.Group>
             )}
-            <Form.Group className="mb-2">
+
+            <Form.Group className="mb-3">
               <Form.Label>Image</Form.Label>
               <Form.Control
                 type="file"
-                accept="image/*"
-                onChange={e => setFormData({ ...formData, image: e.target.files[0] })}
+                onChange={(e) => setImageFile(e.target.files[0])}
               />
-              {formData.image && typeof formData.image === 'string' && (
-                <img src={formData.image} alt="preview" className="thumb-img mt-2" />
+              {formData.src && !imageFile && (
+                <img src={formData.src} alt="Preview" className="img-fluid mt-2" />
               )}
             </Form.Group>
-            <Button type="submit" variant="primary">
-              {editId ? 'Update' : 'Add'}
-            </Button>
+
+            <div className="text-end">
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Cancel
+              </Button>{' '}
+              <Button type="submit" disabled={loading}>
+                {loading ? <Spinner animation="border" size="sm" /> : 'Save'}
+              </Button>
+            </div>
           </Form>
         </Modal.Body>
       </Modal>
-    </div>
+    </Container>
   );
 };
 

@@ -1,65 +1,96 @@
-/* src/pages/AdminGallery.css */
-
-.admin-gallery-container {
-  padding: 20px;
-  max-width: 100%;
-  overflow-x: auto;
+/* Container tweaks */
+.gallery-container {
+  padding: 2rem;
+  background-color: #f9f9f9;
+  min-height: 100vh;
 }
 
-.admin-gallery-container h2 {
-  font-size: 2rem;
-  margin-bottom: 20px;
+/* Heading */
+.gallery-container h3 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Action Button */
+.add-button {
+  background-color: #007bff;
+  border: none;
+  padding: 0.5rem 1.2rem;
+  transition: all 0.3s ease-in-out;
+  font-weight: 500;
+}
+
+.add-button:hover {
+  background-color: #0056b3;
+  transform: scale(1.05);
+}
+
+/* Table styling */
+.gallery-table th,
+.gallery-table td {
+  vertical-align: middle;
   text-align: center;
 }
 
-.thumb-img {
-  height: 80px;
-  width: auto;
+.gallery-table img {
   border-radius: 8px;
-  object-fit: cover;
-  max-width: 100%;
+  transition: transform 0.3s ease;
 }
 
-.table {
-  font-size: 0.95rem;
-  word-break: break-word;
+.gallery-table img:hover {
+  transform: scale(1.1);
 }
 
+/* Action Buttons */
+.action-button {
+  margin: 0 4px;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  transform: scale(1.05);
+}
+
+/* Modal form */
+.modal-form label {
+  font-weight: 500;
+  color: #444;
+}
+
+.modal-form input,
+.modal-form select {
+  border-radius: 6px;
+}
+
+.modal-form img {
+  margin-top: 10px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+/* Spinner */
+.spinner-border {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+/* Media queries */
 @media (max-width: 768px) {
-  .admin-gallery-container h2 {
-    font-size: 1.5rem;
+  .gallery-container {
+    padding: 1rem;
   }
 
-  .thumb-img {
-    height: 60px;
+  .add-button {
+    width: 100%;
+    margin-bottom: 1rem;
   }
 
-  .table th,
-  .table td {
-    font-size: 0.85rem;
-  }
-
-  .btn-sm {
-    font-size: 0.75rem;
-    padding: 2px 6px;
-  }
-}
-
-@media (max-width: 480px) {
-  .thumb-img {
-    height: 50px;
-  }
-
-  .table th,
-  .table td {
-    font-size: 0.75rem;
-  }
-
-  .btn-sm {
-    font-size: 0.7rem;
-  }
-
-  .modal-body {
+  .gallery-table {
     font-size: 0.9rem;
+  }
+
+  .modal-form img {
+    width: 100%;
   }
 }
