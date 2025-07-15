@@ -7,21 +7,40 @@ import './css/Gallery.css';
 const Gallery = () => {
   const [galleryItems, setGalleryItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [categories, setCategories] = useState([]);
+
   const [formData, setFormData] = useState({
     title: '',
-    category: 'Awards',
+    category: '',
     year: '',
     src: '',
   });
   const [imageFile, setImageFile] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showGalleryModal, setShowGalleryModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
+
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // Fetch gallery items
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategory, setNewCategory] = useState('');
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/categories/get');
+      const data = await res.json();
+      setCategories(data.data || []);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
   const fetchItems = async () => {
     try {
       const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/gallery/get');
@@ -43,12 +62,11 @@ const Gallery = () => {
   const filterAndPaginate = () => {
     let items = [...galleryItems];
     if (selectedCategory !== 'All') {
-      items = items.filter(item => item.category === selectedCategory);
+      items = items.filter(item => item.category === selectedCategory || item.category?.name === selectedCategory);
     }
     setFilteredItems(items);
   };
 
-  // Handle form submit (already correct)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -70,10 +88,7 @@ const Gallery = () => {
         imageUrl = uploadData.url;
       }
 
-      const payload = {
-        ...formData,
-        src: imageUrl,
-      };
+      const payload = { ...formData, src: imageUrl };
 
       const response = await fetch(
         editingId
@@ -90,10 +105,10 @@ const Gallery = () => {
 
       if (!response.ok) throw new Error('Submit failed');
 
-      setFormData({ title: '', category: 'Awards', year: '', src: '' });
+      setFormData({ title: '', category: '', year: '', src: '' });
       setImageFile(null);
       setEditingId(null);
-      setShowModal(false);
+      setShowGalleryModal(false);
       fetchItems();
     } catch (err) {
       console.error('Error submitting:', err);
@@ -116,31 +131,60 @@ const Gallery = () => {
   const handleEdit = (item) => {
     setFormData({
       title: item.title,
-      category: item.category,
+      category: item.category?._id || item.category,
       year: item.year || '',
       src: item.src,
     });
     setEditingId(item._id);
-    setShowModal(true);
+    setShowGalleryModal(true);
   };
 
-  // Pagination logic
+  const handlePageChange = (pageNum) => {
+    setCurrentPage(pageNum);
+  };
+
+  const handleAddCategory = async () => {
+    if (!newCategory.trim()) return;
+
+    try {
+      const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/categories/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCategory.trim() }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        fetchCategories();
+        setFormData(prev => ({ ...prev, category: newCategory.trim() }));
+        setNewCategory('');
+        setShowCategoryModal(false);
+      } else {
+        alert('Category creation failed.');
+      }
+    } catch (err) {
+      console.error('Error creating category:', err);
+    }
+  };
+
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
   const paginatedItems = filteredItems.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
 
-  const handlePageChange = (pageNum) => {
-    setCurrentPage(pageNum);
-  };
-
   return (
     <Container className="gallery-container mt-4">
       <Row className="mb-3">
         <Col><h3>Gallery Management</h3></Col>
         <Col className="text-end">
-          <Button className="add-button" onClick={() => setShowModal(true)}>
+          <Button className="add-button" onClick={() => {
+            setFormData({ title: '', category: '', year: '', src: '' });
+            setImageFile(null);
+            setEditingId(null);
+            setShowGalleryModal(true);
+          }}>
             Add New
           </Button>
         </Col>
@@ -148,16 +192,19 @@ const Gallery = () => {
 
       <Row className="mb-3">
         <Col md={3}>
-          <Form.Select value={selectedCategory} onChange={(e) => {
-            setSelectedCategory(e.target.value);
-            setCurrentPage(1);
-          }}>
-            <option value="All">All Categories</option>
-            <option value="Awards">Awards</option>
-            <option value="Certifications">Certifications</option>
-            <option value="Ceremony">Ceremony</option>
-            <option value="Events">Events</option>
-          </Form.Select>
+          <Form.Select
+  value={formData.category}
+  required
+  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+>
+  <option value="">Select a category</option>
+  {categories.map((cat) => (
+    <option key={cat._id} value={cat._id}>
+      {cat.name}
+    </option>
+  ))}
+</Form.Select>
+
         </Col>
       </Row>
 
@@ -177,15 +224,13 @@ const Gallery = () => {
           ) : (
             paginatedItems.map((item) => (
               <tr key={item._id}>
-                <td>
-                  <img src={item.src} alt={item.title} width="100" />
-                </td>
+                <td><img src={item.src} alt={item.title} width="100" /></td>
                 <td>{item.title}</td>
-                <td>{item.category}</td>
+                <td>{item.category?.name || item.category || 'Unknown'}</td>
                 <td>{item.year || '-'}</td>
                 <td>
-                  <Button variant="warning" size="sm" className="action-button" onClick={() => handleEdit(item)}>Edit</Button>{' '}
-                  <Button variant="danger" size="sm" className="action-button" onClick={() => handleDelete(item._id)}>Delete</Button>
+                  <Button variant="warning" size="sm" onClick={() => handleEdit(item)}>Edit</Button>{' '}
+                  <Button variant="danger" size="sm" onClick={() => handleDelete(item._id)}>Delete</Button>
                 </td>
               </tr>
             ))
@@ -207,8 +252,8 @@ const Gallery = () => {
         </Pagination>
       )}
 
-      {/* Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+      {/* Gallery Modal */}
+      <Modal show={showGalleryModal} onHide={() => setShowGalleryModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>{editingId ? 'Edit Gallery Item' : 'Add Gallery Item'}</Modal.Title>
         </Modal.Header>
@@ -226,15 +271,23 @@ const Gallery = () => {
 
             <Form.Group className="mb-3">
               <Form.Label>Category</Form.Label>
-              <Form.Select
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              >
-                <option>Awards</option>
-                <option>Certifications</option>
-                <option>Ceremony</option>
-                <option>Events</option>
-              </Form.Select>
+              <div className="d-flex">
+                <Form.Select
+                  value={formData.category}
+                  required
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                >
+                  <option value="">Select a category</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat.name}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </Form.Select>
+                <Button variant="info" className="ms-2" onClick={() => setShowCategoryModal(true)}>
+                  +
+                </Button>
+              </div>
             </Form.Group>
 
             {formData.category === 'Events' && (
@@ -261,12 +314,41 @@ const Gallery = () => {
             </Form.Group>
 
             <div className="text-end">
-              <Button variant="secondary" onClick={() => setShowModal(false)}>
+              <Button variant="secondary" onClick={() => setShowGalleryModal(false)}>
                 Cancel
               </Button>{' '}
               <Button type="submit" disabled={loading}>
                 {loading ? <Spinner animation="border" size="sm" /> : 'Save'}
               </Button>
+            </div>
+          </Form>
+        </Modal.Body>
+      </Modal>
+
+      {/* Category Modal */}
+      <Modal show={showCategoryModal} onHide={() => setShowCategoryModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Create New Category</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form onSubmit={(e) => {
+            e.preventDefault();
+            handleAddCategory();
+          }}>
+            <Form.Group className="mb-3">
+              <Form.Label>Category Name</Form.Label>
+              <Form.Control
+                type="text"
+                required
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+              />
+            </Form.Group>
+            <div className="text-end">
+              <Button variant="secondary" onClick={() => setShowCategoryModal(false)}>
+                Cancel
+              </Button>{' '}
+              <Button type="submit">Create</Button>
             </div>
           </Form>
         </Modal.Body>
