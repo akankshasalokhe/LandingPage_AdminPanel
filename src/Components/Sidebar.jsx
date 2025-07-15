@@ -33,7 +33,7 @@ const Sidebar = () => {
           onClick={isMobile ? handleClose : undefined}
           className="flex items-center gap-3 mt-16 text-xl font-extrabold tracking-tight dark:text-white text-slate-900"
         >
-          <h1 className="text-3xl font-bold" style={{ color: currentColor }}>Bizbooster 2x</h1>
+          <h1 className="text-3xl font-bold" style={{ color: currentColor }}>FetchTrue</h1>
         </Link>
       </div>
 
