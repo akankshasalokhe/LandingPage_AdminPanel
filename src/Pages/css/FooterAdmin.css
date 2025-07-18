@@ -1,0 +1,28 @@
+/* FooterAdmin.css */
+
+.footer-preview ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.footer-preview li {
+  margin-bottom: 4px;
+}
+
+.footer-preview img {
+  border-radius: 8px;
+  max-width: 100%;
+  height: auto;
+}
+
+.custom-blue-btn {
+  background-color: #007bff !important;
+  border-color: #007bff !important;
+  color: #fff !important;
+}
+
+@media (max-width: 768px) {
+  .footer-preview {
+    font-size: 14px;
+  }
+}

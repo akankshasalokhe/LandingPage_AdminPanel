@@ -1,9 +1,11 @@
+// ✅ 1. Updated submit function and handlers in Servicepage.jsx
+
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/Displayinfo.css';
 
 const initialDesc = { title: '', description: '' };
-const initialCategory = { title: '', description: '', image: null };
+const initialCategory = { title: '', description: '', image: [] };
 
 const Servicepage = () => {
   const [services, setServices] = useState([]);
@@ -49,7 +51,7 @@ const Servicepage = () => {
       categoryname: (service.categoryname || []).map(c => ({
         title: c.title,
         description: c.description,
-        image: Array.isArray(c.image) ? c.image[0] : c.image,
+        image: Array.isArray(c.image) ? c.image : [c.image],
       })),
     });
   };
@@ -65,12 +67,12 @@ const Servicepage = () => {
   };
 
   const handleImage = (e, field, i = null) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
     setSelected(prev => {
       const updated = { ...prev };
-      if (i !== null) updated[field][i].image = file;
-      else updated[field] = file;
+      if (i !== null) updated[field][i].image = files;
+      else updated[field] = files[0];
       return updated;
     });
   };
@@ -100,21 +102,44 @@ const Servicepage = () => {
 
     const fd = new FormData();
     fd.append('servicetitle', selected.servicetitle);
-    if (selected.serviceImage instanceof File) fd.append('serviceImage', selected.serviceImage);
+
+    if (selected.serviceImage instanceof File) {
+      fd.append('serviceImage', selected.serviceImage);
+    }
+
     fd.append('titleDescArray', JSON.stringify(selected.titleDescArray));
 
-    const categoryInfo = selected.categoryname.map(cat => {
-      if (cat.image instanceof File) fd.append('categoryImages', cat.image);
-      return {
+    const categoryData = [];
+
+    selected.categoryname.forEach((cat, idx) => {
+      const prefix = `cat-${idx}-`;
+
+      if (Array.isArray(cat.image)) {
+        cat.image.forEach((file, fileIdx) => {
+          if (file instanceof File) {
+            const renamedFile = new File([file], `${prefix}${fileIdx}-${file.name}`);
+            fd.append('categoryImages', renamedFile);
+          }
+        });
+      } else if (cat.image instanceof File) {
+        const renamedFile = new File([cat.image], `${prefix}0-${cat.image.name}`);
+        fd.append('categoryImages', renamedFile);
+      }
+
+      categoryData.push({
         title: cat.title,
         description: cat.description,
-        tempImageName: cat.image instanceof File ? cat.image.name : '',
-      };
+        tempImagePrefix: prefix,
+      });
     });
-    fd.append('categoryname', JSON.stringify(categoryInfo));
+
+    fd.append('categoryname', JSON.stringify(categoryData));
 
     try {
-      const res = await fetch(endpoint, { method, body: fd });
+      const res = await fetch(endpoint, {
+        method,
+        body: fd,
+      });
       if (!res.ok) throw new Error('Save failed');
       await fetchServices();
       setSelected(null);
@@ -219,10 +244,23 @@ const Servicepage = () => {
                 <h6>Categories</h6>
                 {selected.categoryname.map((cat, i) => (
                   <div key={i} className="mb-3 p-3 bg-light rounded">
-                    {typeof cat.image === 'string' && (
-                      <img src={cat.image} alt="" className="img-thumbnail mb-2" style={{ maxWidth: 120 }} />
+                    {Array.isArray(cat.image) && cat.image.map((img, idx) =>
+                      typeof img === 'string' ? (
+                        <img
+                          key={idx}
+                          src={img}
+                          alt=""
+                          className="img-thumbnail mb-2 me-2"
+                          style={{ maxWidth: 120 }}
+                        />
+                      ) : null
                     )}
-                    <input type="file" className="form-control mb-2" onChange={e => handleImage(e, 'categoryname', i)} />
+                    <input
+                      type="file"
+                      multiple
+                      className="form-control mb-2"
+                      onChange={e => handleImage(e, 'categoryname', i)}
+                    />
                     <input
                       className="form-control mb-2"
                       placeholder="Category Title"
@@ -243,8 +281,8 @@ const Servicepage = () => {
 
               <div className="modal-footer">
                 <button className="btn btn-secondary" onClick={() => setSelected(null)}>Cancel</button>
-                <button className="btn btn-primary  " onClick={submit} disabled={submitting}>
-                    {submitting ? 'Saving...' : (selected._id ? 'Update' : 'Create')}
+                <button className="btn btn-primary" onClick={submit} disabled={submitting}>
+                  {submitting ? 'Saving...' : (selected._id ? 'Update' : 'Create')}
                 </button>
               </div>
 

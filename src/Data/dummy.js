@@ -45,6 +45,7 @@ import product5 from './product5.jpg';
 import product6 from './product6.jpg';
 import product7 from './product7.jpg';
 import product8 from './product8.jpg';
+import { ModalFooter } from 'react-bootstrap';
 
 
 export const gridOrderImage = (props) => (
@@ -558,6 +559,10 @@ export const links = [
       {
         name: 'Service-Providers',
         icon: <MdOutlineDesignServices />,
+      },
+      {
+        name: 'FooterAdmin',
+        icon: <MdWork/>
       },
 
       {

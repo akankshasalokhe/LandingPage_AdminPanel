@@ -46,6 +46,7 @@ import TermsAndConditions from './Pages/TermsAndCondition';
 import ReturnAndRefund from './Pages/ReturnAndRefund';
 import AboutUs from './Pages/AboutUs';
 import Gallery from './Pages/Gallery';
+import FooterAdmin from './Pages/FooterAdmin';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -147,6 +148,7 @@ const App = () => {
             <Route path='/Return-and-Refund' element={<ReturnAndRefund/>}/>
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/gallery" element={<Gallery />} />
+            <Route path='/footeradmin' element={<FooterAdmin/>}/>
             <Route path="*" element={<Navigate to="/Service-Page" />} />
            
           </>
@@ -350,7 +352,7 @@ const LoginForm = ({ onLogin, currentMode }) => {
         </form>
 
         <div className={`mt-4 sm:mt-6 text-center text-xs sm:text-sm ${currentMode === 'Dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-          © {new Date().getFullYear()} Bizbooster. All rights reserved.
+          © {new Date().getFullYear()} FetchTrue. All rights reserved.
         </div>
       </div>
     </div>
