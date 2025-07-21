@@ -47,6 +47,7 @@ import ReturnAndRefund from './Pages/ReturnAndRefund';
 import AboutUs from './Pages/AboutUs';
 import Gallery from './Pages/Gallery';
 import FooterAdmin from './Pages/FooterAdmin';
+import AdminBannerPage from './Pages/BannerPage';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -149,6 +150,7 @@ const App = () => {
             <Route path="/about-us" element={<AboutUs />} />
             <Route path="/gallery" element={<Gallery />} />
             <Route path='/footeradmin' element={<FooterAdmin/>}/>
+            <Route path='/banner' element= {<AdminBannerPage/>}/>
             <Route path="*" element={<Navigate to="/Service-Page" />} />
            
           </>

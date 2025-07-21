@@ -26,7 +26,8 @@ const Gallery = () => {
     try {
       const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/categories/get');
       const data = await res.json();
-      setCategories(data.data || []);
+      const validCategories = (data.data || []).filter(cat => cat && cat.name);
+      setCategories(validCategories);
     } catch (err) {
       console.error('Error fetching categories:', err);
     }
@@ -57,7 +58,7 @@ const Gallery = () => {
       );
     }
     setFilteredItems(items);
-    setCurrentPage(1); // reset to first page on filter
+    setCurrentPage(1);
   }, [galleryItems, selectedCategory]);
 
   const paginatedItems = filteredItems.slice(
@@ -157,6 +158,18 @@ const Gallery = () => {
     }
   };
 
+  const handleDeleteCategory = async (id) => {
+    if (!window.confirm('Delete this category?')) return;
+    try {
+      await fetch(`https://landing-page-backend-alpha.vercel.app/api/categories/delete/${id}`, {
+        method: 'DELETE',
+      });
+      fetchCategories();
+    } catch (err) {
+      console.error('Error deleting category:', err);
+    }
+  };
+
   const isEventsCategory = () => {
     const selectedCat = categories.find(cat => cat._id === formData.category || cat.name === formData.category);
     return selectedCat?.name === 'Events';
@@ -185,51 +198,48 @@ const Gallery = () => {
             onChange={(e) => setSelectedCategory(e.target.value)}
           >
             <option value="All">All Categories</option>
-            {categories.map((cat) => (
-              <option key={cat._id} value={cat._id}>
-                {cat.name}
-              </option>
-            ))}
+            {categories
+              .filter(cat => cat && cat.name)
+              .map((cat) => (
+                <option key={cat._id} value={cat._id}>
+                  {cat.name}
+                </option>
+              ))}
           </Form.Select>
         </Col>
       </Row>
 
       <Table responsive bordered hover className="gallery-table">
-  <thead>
-    <tr>
-      <th>Image</th>
-      <th>Title</th>
-      <th>Category</th>
-      <th>Year</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {paginatedItems.length === 0 ? (
-      <tr><td colSpan="5">No gallery items found.</td></tr>
-    ) : (
-      paginatedItems.map((item) => (
-        <tr key={item._id}>
-          <td><img src={item.src} alt={item.title} width="100" /></td>
-          <td>{item.title}</td>
-<td>
-  {
-    typeof item.category === 'object'
-      ? item.category.name
-      : (categories.find(cat => cat._id === item.category)?.name || '-')
-  }
-</td>
-          <td>{item.year || '-'}</td>
-          <td>
-            <Button variant="warning" size="sm" onClick={() => handleEdit(item)}>Edit</Button>{' '}
-            <Button variant="danger" size="sm" onClick={() => handleDelete(item._id)}>Delete</Button>
-          </td>
-        </tr>
-      ))
-    )}
-  </tbody>
-</Table>
-
+        <thead>
+          <tr>
+            <th>Image</th>
+            <th>Category</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {paginatedItems.length === 0 ? (
+            <tr><td colSpan="5">No gallery items found.</td></tr>
+          ) : (
+            paginatedItems.map((item) => (
+              <tr key={item._id}>
+                <td><img src={item.src} alt={item.title} width="100" /></td>
+                <td>
+                  {
+                    typeof item.category === 'object'
+                      ? item.category?.name
+                      : (categories.find(cat => cat._id === item.category)?.name || '-')
+                  }
+                </td>
+                <td>
+                  <Button variant="warning" size="sm" onClick={() => handleEdit(item)}>Edit</Button>{' '}
+                  <Button variant="danger" size="sm" onClick={() => handleDelete(item._id)}>Delete</Button>
+                </td>
+              </tr>
+            ))
+          )}
+        </tbody>
+      </Table>
 
       {totalPages > 1 && (
         <Pagination className="justify-content-center">
@@ -271,11 +281,13 @@ const Gallery = () => {
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                 >
                   <option value="">Select a category</option>
-                  {categories.map((cat) => (
-                    <option key={cat._id} value={cat._id}>
-                      {cat.name}
-                    </option>
-                  ))}
+                  {categories
+                    .filter(cat => cat && cat.name)
+                    .map((cat) => (
+                      <option key={cat._id} value={cat._id}>
+                        {cat.name}
+                      </option>
+                    ))}
                 </Form.Select>
                 <Button variant="info" className="ms-2" onClick={() => setShowCategoryModal(true)}>+</Button>
               </div>
@@ -318,7 +330,7 @@ const Gallery = () => {
       {/* Category Modal */}
       <Modal show={showCategoryModal} onHide={() => setShowCategoryModal(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Create New Category</Modal.Title>
+          <Modal.Title>Manage Categories</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form onSubmit={(e) => {
@@ -326,7 +338,7 @@ const Gallery = () => {
             handleAddCategory();
           }}>
             <Form.Group className="mb-3">
-              <Form.Label>Category Name</Form.Label>
+              <Form.Label>New Category Name</Form.Label>
               <Form.Control
                 type="text"
                 required
@@ -334,13 +346,39 @@ const Gallery = () => {
                 onChange={(e) => setNewCategory(e.target.value)}
               />
             </Form.Group>
-            <div className="text-end">
+            <div className="text-end mb-3">
               <Button variant="secondary" onClick={() => setShowCategoryModal(false)}>
                 Cancel
               </Button>{' '}
               <Button type="submit">Create</Button>
             </div>
           </Form>
+
+          <hr />
+          <h6>Existing Categories</h6>
+          {categories.length === 0 ? (
+            <p>No categories found.</p>
+          ) : (
+            <ul className="list-group">
+              {categories
+                .filter(cat => cat && cat.name)
+                .map((cat) => (
+                  <li
+                    key={cat._id}
+                    className="list-group-item d-flex justify-content-between align-items-center"
+                  >
+                    {cat.name}
+                    <Button
+                      variant="danger"
+                      size="sm"
+                      onClick={() => handleDeleteCategory(cat._id)}
+                    >
+                      Delete
+                    </Button>
+                  </li>
+                ))}
+            </ul>
+          )}
         </Modal.Body>
       </Modal>
     </Container>
@@ -348,3 +386,4 @@ const Gallery = () => {
 };
 
 export default Gallery;
+

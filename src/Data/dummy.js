@@ -564,6 +564,10 @@ export const links = [
         name: 'FooterAdmin',
         icon: <MdWork/>
       },
+      {
+        name: 'Banner',
+        icon: <MdOutlineDesignServices/>
+      },
 
       {
         name: 'Enquiries',
