@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { saveAs } from 'file-saver';
 import * as XLSX from 'xlsx';
-import './css/Enquiries.css'; // Updated styles
+import './css/Enquiries.css';
 
 const Enquiries = () => {
   const [enquiries, setEnquiries] = useState([]);
@@ -25,8 +25,8 @@ const Enquiries = () => {
 
       const res = await fetch(`https://landingpagebackend-nine.vercel.app/api/contact/get?${params.toString()}`);
       const data = await res.json();
-      setEnquiries(data.data);
-      setTotalPages(data.totalPages);
+      setEnquiries(data.data || []);
+      setTotalPages(data.totalPages || 1);
     } catch (err) {
       console.error('Fetch error:', err);
     } finally {
@@ -39,17 +39,36 @@ const Enquiries = () => {
   }, [search, fromDate, toDate, page]);
 
   const deleteEnquiry = async (id) => {
-    if (window.confirm('Are you sure you want to delete this enquiry?')) {
+  if (window.confirm('Are you sure you want to delete this enquiry?')) {
+    try {
+      const res = await fetch(`https://landingpagebackend-nine.vercel.app/api/contact/delete/${id}`, {
+        method: 'DELETE',
+      });
+
+      let resultText = await res.text(); // first get raw text
+      let result;
+
       try {
-        await fetch(`https://landingpagebackend-nine.vercel.app/api/contact/delete/${id}`, {
-          method: 'DELETE',
-        });
-        fetchEnquiries();
-      } catch (err) {
-        console.error('Delete error:', err);
+        result = JSON.parse(resultText); // then try to parse
+      } catch (parseErr) {
+        console.error('Response not JSON:', resultText);
+        throw new Error('Invalid JSON response');
       }
+
+      if (!res.ok) {
+        alert(result.message || 'Failed to delete enquiry');
+        console.error('Delete failed:', result);
+      } else {
+        alert('Enquiry deleted successfully');
+        fetchEnquiries(); // refresh list
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Something went wrong while deleting');
     }
-  };
+  }
+};
+
 
   const exportToExcel = () => {
     const ws = XLSX.utils.json_to_sheet(enquiries);
@@ -107,20 +126,19 @@ const Enquiries = () => {
       ) : (
         <div className="table-responsive table-container w-100">
           <table className="table table-bordered table-hover align-middle table-sm mb-0 w-100">
-          <thead className="table-light text-center">
-            <tr>
-              <th>#</th>
-              <th>First</th>
-              <th>Last</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Service</th>
-              <th>Message</th>
-              <th>Submitted</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-
+            <thead className="table-light text-center">
+              <tr>
+                <th>#</th>
+                <th>First</th>
+                <th>Last</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Service</th>
+                <th>Message</th>
+                <th>Submitted</th>
+                <th>Action</th>
+              </tr>
+            </thead>
             <tbody>
               {enquiries.length === 0 ? (
                 <tr>
