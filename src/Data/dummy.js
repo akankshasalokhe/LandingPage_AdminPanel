@@ -620,7 +620,7 @@ export const links = [
         icon: <IoIosCall />,
       },
        {
-        name: 'Business-Info',
+        name: 'Earning',
         icon: <IoMdBusiness />,
       },
        {
