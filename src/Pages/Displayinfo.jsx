@@ -17,7 +17,7 @@ const DisplayInfo = () => {
 
   const fetchItems = async () => {
     try {
-      const response = await fetch('https://landing-page-backend-alpha.vercel.app/api/item/get');
+      const response = await fetch('https://landingpagebackend-nine.vercel.app/api/item/get');
       if (!response.ok) throw new Error('Failed to fetch items');
       const data = await response.json();
       setItems(data.data);
@@ -58,8 +58,8 @@ const DisplayInfo = () => {
 
   try {
     const url = isCreating
-      ? 'https://landing-page-backend-alpha.vercel.app/api/item/add'
-      : `https://landing-page-backend-alpha.vercel.app/api/item/update/${data._id}`;
+      ? 'https://landingpagebackend-nine.vercel.app/api/item/add'
+      : `https://landingpagebackend-nine.vercel.app/api/item/update/${data._id}`;
     const method = isCreating ? 'POST' : 'PUT';
 
     const response = await fetch(url, { method, body: formData });
@@ -76,7 +76,7 @@ const DisplayInfo = () => {
 
   const deleteItem = async (id) => {
     try {
-      const response = await fetch(`https://landing-page-backend-alpha.vercel.app/api/item/delete/${id}`, {
+      const response = await fetch(`https://landingpagebackend-nine.vercel.app/api/item/delete/${id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete item');
