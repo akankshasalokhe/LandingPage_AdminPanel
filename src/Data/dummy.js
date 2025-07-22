@@ -542,10 +542,10 @@ export const links = [
         icon: <CiVideoOn />,
       },
 
-      {
-        name: 'Business-Info',
-        icon: <IoMdBusiness />,
-      },
+      // {
+      //   name: 'Business-Info',
+      //   icon: <IoMdBusiness />,
+      // },
 
       {
         name: 'Count',
@@ -556,10 +556,10 @@ export const links = [
         icon: <MdOutlineImage />,
       },
 
-      {
-        name: 'Service-Providers',
-        icon: <MdOutlineDesignServices />,
-      },
+      // {
+      //   name: 'Service-Providers',
+      //   icon: <MdOutlineDesignServices />,
+      // },
       {
         name: 'FooterAdmin',
         icon: <MdWork/>
@@ -569,23 +569,23 @@ export const links = [
         icon: <MdOutlineDesignServices/>
       },
 
-      {
-        name: 'Enquiries',
-        icon: <IoIosCall />,
-      },
-      {
-        name: 'Privacy-Policy',
-        icon: <MdPolicy />
-,
-      },
-      {
-        name: 'Terms-and-Conditions',
-        icon: <MdPolicy />,
-      },
-      {
-        name: 'Return-and-Refund',
-        icon: <MdPolicy />,
-      },
+      // {
+      //   name: 'Enquiries',
+      //   icon: <IoIosCall />,
+      // },
+//       {
+//         name: 'Privacy-Policy',
+//         icon: <MdPolicy />
+// ,
+//       },
+//       {
+//         name: 'Terms-and-Conditions',
+//         icon: <MdPolicy />,
+//       },
+//       {
+//         name: 'Return-and-Refund',
+//         icon: <MdPolicy />,
+//       },
       {
         name: 'About-Us',
         icon: <MdPolicy />,
@@ -612,24 +612,41 @@ export const links = [
       // },
     ],
   },
-  // {
-  //   title: 'Apps',
-  //   links: [
-  //     {
-  //       name: 'CRM',
-  //       icon: <RiCustomerService2Line />,
-  //     },
-  //     // {
-  //     //   name: 'color-picker',
-  //     //   icon: <BiColorFill />,
-  //     // },
-
-  //     {
-  //       name: 'NewsLetter',
-  //       icon: <GiNewspaper />,
-  //     },
-  //   ],
-  // },
+  {
+    title: 'Enquiries',
+    links: [
+       {
+        name: 'Enquiries',
+        icon: <IoIosCall />,
+      },
+       {
+        name: 'Business-Info',
+        icon: <IoMdBusiness />,
+      },
+       {
+        name: 'Service-Providers',
+        icon: <MdOutlineDesignServices />,
+      },
+    ]
+  },
+  {
+    title: 'Policy',
+    links: [
+         {
+        name: 'Privacy-Policy',
+        icon: <MdPolicy />
+,
+      },
+      {
+        name: 'Terms-and-Conditions',
+        icon: <MdPolicy />,
+      },
+      {
+        name: 'Return-and-Refund',
+        icon: <MdPolicy />,
+      },
+    ],
+  },
   
 ];
 

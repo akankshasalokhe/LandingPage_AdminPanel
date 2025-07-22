@@ -24,7 +24,7 @@ const Gallery = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/categories/get');
+      const res = await fetch('https://landingpagebackend-nine.vercel.app/api/categories/get');
       const data = await res.json();
       const validCategories = (data.data || []).filter(cat => cat && cat.name);
       setCategories(validCategories);
@@ -35,7 +35,7 @@ const Gallery = () => {
 
   const fetchItems = async () => {
     try {
-      const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/gallery/get');
+      const res = await fetch('https://landingpagebackend-nine.vercel.app/api/gallery/get');
       const data = await res.json();
       setGalleryItems(data.data || []);
     } catch (err) {
@@ -78,7 +78,7 @@ const Gallery = () => {
       if (imageFile) {
         const form = new FormData();
         form.append('image', imageFile);
-        const resUpload = await fetch('https://landing-page-backend-alpha.vercel.app/api/gallery/upload', {
+        const resUpload = await fetch('https://landingpagebackend-nine.vercel.app/api/gallery/upload', {
           method: 'POST',
           body: form,
         });
@@ -91,8 +91,8 @@ const Gallery = () => {
 
       const response = await fetch(
         editingId
-          ? `https://landing-page-backend-alpha.vercel.app/api/gallery/update/${editingId}`
-          : 'https://landing-page-backend-alpha.vercel.app/api/gallery/create',
+          ? `https://landingpagebackend-nine.vercel.app/api/gallery/update/${editingId}`
+          : 'https://landingpagebackend-nine.vercel.app/api/gallery/create',
         {
           method: editingId ? 'PUT' : 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -117,7 +117,7 @@ const Gallery = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this item?')) return;
     try {
-      await fetch(`https://landing-page-backend-alpha.vercel.app/api/gallery/delete/${id}`, { method: 'DELETE' });
+      await fetch(`https://landingpagebackend-nine.vercel.app/api/gallery/delete/${id}`, { method: 'DELETE' });
       fetchItems();
     } catch (err) {
       console.error('Delete error:', err);
@@ -138,7 +138,7 @@ const Gallery = () => {
   const handleAddCategory = async () => {
     if (!newCategory.trim()) return;
     try {
-      const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/categories/create', {
+      const res = await fetch('https://landingpagebackend-nine.vercel.app/api/categories/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: newCategory.trim() }),
@@ -161,7 +161,7 @@ const Gallery = () => {
   const handleDeleteCategory = async (id) => {
     if (!window.confirm('Delete this category?')) return;
     try {
-      await fetch(`https://landing-page-backend-alpha.vercel.app/api/categories/delete/${id}`, {
+      await fetch(`https://landingpagebackend-nine.vercel.app/api/categories/delete/${id}`, {
         method: 'DELETE',
       });
       fetchCategories();

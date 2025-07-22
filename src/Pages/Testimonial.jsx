@@ -16,7 +16,7 @@ const Testimonial = () => {
 
   const fetchTestimonials = async () => {
     try {
-      const response = await fetch('https://landing-page-backend-alpha.vercel.app/api/testimonial/get');
+      const response = await fetch('https://landingpagebackend-nine.vercel.app/api/testimonial/get');
       if (!response.ok) throw new Error('Failed to fetch testimonials');
       const data = await response.json();
       setTestimonials(data || []);
@@ -71,7 +71,7 @@ const Testimonial = () => {
         formData.append('image', selectedTestimonial.image);
       }
 
-      const response = await fetch('https://landing-page-backend-alpha.vercel.app/api/testimonial/upload', {
+      const response = await fetch('https://landingpagebackend-nine.vercel.app/api/testimonial/upload', {
         method: 'POST',
         body: formData,
       });
@@ -103,7 +103,7 @@ const Testimonial = () => {
         formData.append('image', selectedTestimonial.image);
       }
 
-      const response = await fetch(`https://landing-page-backend-alpha.vercel.app/api/testimonial/update/${selectedTestimonial._id}`, {
+      const response = await fetch(`https://landingpagebackend-nine.vercel.app/api/testimonial/update/${selectedTestimonial._id}`, {
         method: 'PATCH',
         body: formData,
       });
@@ -125,7 +125,7 @@ const Testimonial = () => {
     if (!id) return;
     
     try {
-      const response = await fetch(`https://landing-page-backend-alpha.vercel.app/api/testimonial/delete/${id}`, {
+      const response = await fetch(`https://landingpagebackend-nine.vercel.app/api/testimonial/delete/${id}`, {
         method: 'DELETE',
       });
 

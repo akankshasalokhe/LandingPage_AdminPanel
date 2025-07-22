@@ -1,0 +1,116 @@
+/* Global fix */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  font-family: sans-serif;
+}
+
+/* Container */
+.enquiries-container {
+  width: 100%;
+  padding: 20px;
+}
+
+/* Table wrapper */
+.table-container {
+  width: 100%;
+  overflow-x: hidden;
+}
+
+/* Base table style for laptops and larger */
+.table {
+  width: 100%;
+  table-layout: fixed; /* Fit all columns in screen */
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 10px;
+  font-size: 14px;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* Limit long columns */
+.table td:nth-child(4),  /* Email */
+.table td:nth-child(7) { /* Message */
+  max-width: 160px;
+}
+
+/* Make sure Action column shows */
+.table td:last-child,
+.table th:last-child {
+  min-width: 90px;
+  text-align: center;
+}
+
+/* Export button styling */
+.export-btn {
+  padding: 8px 16px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  white-space: nowrap;
+}
+
+/* ---------- Responsive Below ---------- */
+
+/* Tablet & Mobile */
+@media (max-width: 991px) {
+  .table-container {
+    overflow-x: auto; /* Enable horizontal scroll */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table {
+    min-width: 800px; /* Force scroll if screen is narrower */
+  }
+
+  .table th,
+  .table td {
+    font-size: 13px;
+    padding: 8px;
+  }
+
+  .export-btn {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 576px) {
+  .table th,
+  .table td {
+    font-size: 12px;
+    padding: 6px;
+  }
+
+  .export-btn {
+    width: 100%;
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+
+  .pagination-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pagination-controls button {
+    width: 100%;
+  }
+
+  .pagination-controls span {
+    text-align: center;
+    margin: 10px 0;
+  }
+}

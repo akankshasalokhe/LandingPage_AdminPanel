@@ -11,7 +11,7 @@ const AdminBannerPage = () => {
   const [editPage, setEditPage] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const API_BASE = 'https://landing-page-backend-alpha.vercel.app/api/banner';
+  const API_BASE = 'https://landingpagebackend-nine.vercel.app/api/banner';
 
   useEffect(() => {
     fetchBanners();

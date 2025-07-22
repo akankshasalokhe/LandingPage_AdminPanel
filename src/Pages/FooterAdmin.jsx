@@ -26,7 +26,7 @@ const FooterAdmin = () => {
 
   const fetchFooter = async () => {
     try {
-      const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/footer/get');
+      const res = await fetch('https://landingpagebackend-nine.vercel.app/api/footer/get');
       const data = await res.json();
       setFooter(data);
     } catch (err) {
@@ -64,7 +64,7 @@ const FooterAdmin = () => {
 
   const handleSave = async () => {
     try {
-      const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/footer/update', {
+      const res = await fetch('https://landingpagebackend-nine.vercel.app/api/footer/update', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

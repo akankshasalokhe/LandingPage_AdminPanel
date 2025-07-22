@@ -21,7 +21,7 @@ const Servicepage = () => {
   const fetchServices = async () => {
     try {
       setLoading(true);
-      const res = await fetch('https://landing-page-backend-alpha.vercel.app/api/servicepage/get');
+      const res = await fetch('https://landingpagebackend-nine.vercel.app/api/servicepage/get');
       if (!res.ok) throw new Error('Cannot fetch services');
       const { data = [] } = await res.json();
       setServices(data);
@@ -97,8 +97,8 @@ const Servicepage = () => {
     const isEditMode = !!selected?._id;
     const method = isEditMode ? 'PUT' : 'POST';
     const endpoint = isEditMode
-      ? `https://landing-page-backend-alpha.vercel.app/api/servicepage/update/${selected._id}`
-      : 'https://landing-page-backend-alpha.vercel.app/api/servicepage/add';
+      ? `https://landingpagebackend-nine.vercel.app/api/servicepage/update/${selected._id}`
+      : 'https://landingpagebackend-nine.vercel.app/api/servicepage/add';
 
     const fd = new FormData();
     fd.append('servicetitle', selected.servicetitle);
@@ -153,7 +153,7 @@ const Servicepage = () => {
   const del = async id => {
     if (!window.confirm('Really delete this item?')) return;
     try {
-      const res = await fetch(`https://landing-page-backend-alpha.vercel.app/api/servicepage/delete/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://landingpagebackend-nine.vercel.app/api/servicepage/delete/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error('Delete failed');
       await fetchServices();
     } catch (e) {

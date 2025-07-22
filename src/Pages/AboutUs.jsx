@@ -15,7 +15,7 @@ const ContentSectionPage = () => {
 
   const fetchSections = async () => {
     try {
-      const res = await fetch("https://landing-page-backend-alpha.vercel.app/api/contentsection/get");
+      const res = await fetch("https://landingpagebackend-nine.vercel.app/api/contentsection/get");
       const data = await res.json();
       setSections(data);
     } catch (err) {

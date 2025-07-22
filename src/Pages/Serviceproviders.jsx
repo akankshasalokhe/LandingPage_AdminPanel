@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useStateContext } from '../Contexts/ContextProvider';
 import { FiDownload, FiTrash2 } from 'react-icons/fi';
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 
 const Serviceproviders = () => {
   const { currentColor, currentMode } = useStateContext();
@@ -33,17 +35,38 @@ const Serviceproviders = () => {
       const response = await fetch(`https://biz-booster-landingpage-backend.vercel.app/api/service/delete/${id}`, {
         method: 'DELETE',
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to delete service provider');
       }
-      
+
       setServices(services.filter(service => service._id !== id));
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleExportExcel = () => {
+    const exportData = services.map(service => ({
+      Name: `${service.firstName || ''} ${service.middleName || ''} ${service.lastName || ''}`.trim(),
+      Address: service.address || '',
+      Phone: service.phoneNumber || '',
+      Email: service.email || '',
+      Module: service.module || '',
+      Message: service.message || '',
+      DocumentURL: service.fileUrl || ''
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'ServiceProviders');
+
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const dataBlob = new Blob([excelBuffer], { type: 'application/octet-stream' });
+
+    saveAs(dataBlob, 'ServiceProviders.xlsx');
   };
 
   if (loading) {
@@ -68,69 +91,39 @@ const Serviceproviders = () => {
         <h1 className="text-2xl font-semibold" style={{ color: currentMode === 'Dark' ? 'white' : 'black' }}>
           Service Providers
         </h1>
+        <button
+          onClick={handleExportExcel}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md shadow-md text-sm"
+        >
+          Export to Excel
+        </button>
       </div>
 
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
           <thead className={`${currentMode === 'Dark' ? 'bg-gray-800' : 'bg-gray-50'}`}>
             <tr>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                style={{ color: currentMode === 'Dark' ? 'white' : 'gray' }}
-              >
-                Name
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                style={{ color: currentMode === 'Dark' ? 'white' : 'gray' }}
-              >
-                Contact
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                style={{ color: currentMode === 'Dark' ? 'white' : 'gray' }}
-              >
-                Module
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                style={{ color: currentMode === 'Dark' ? 'white' : 'gray' }}
-              >
-                Message
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                style={{ color: currentMode === 'Dark' ? 'white' : 'gray' }}
-              >
-                Document
-              </th>
-              <th
-                scope="col"
-                className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
-                style={{ color: currentMode === 'Dark' ? 'white' : 'gray' }}
-              >
-                Actions
-              </th>
+              {['Name', 'Contact', 'Module', 'Message', 'Document', 'Actions'].map((header) => (
+                <th
+                  key={header}
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
+                  style={{ color: currentMode === 'Dark' ? 'white' : 'gray' }}
+                >
+                  {header}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody className={`divide-y divide-gray-200 dark:divide-gray-700 ${currentMode === 'Dark' ? 'bg-secondary-dark-bg' : 'bg-white'}`}>
             {services.map((service, index) => (
               <tr key={service._id} className={index % 2 === 0 ? (currentMode === 'Dark' ? 'bg-gray-800' : 'bg-gray-50') : ''}>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div>
-                      <div className="text-sm font-medium" style={{ color: currentMode === 'Dark' ? 'white' : 'gray' }}>
-                        {service.firstName} {service.middleName} {service.lastName}
-                      </div>
-                      <div className="text-sm" style={{ color: currentMode === 'Dark' ? 'rgb(156, 163, 175)' : 'rgb(107, 114, 128)' }}>
-                        {service.address}
-                      </div>
-                    </div>
+                  <div className="text-sm font-medium" style={{ color: currentMode === 'Dark' ? 'white' : 'gray' }}>
+                    {service.firstName} {service.middleName} {service.lastName}
+                  </div>
+                  <div className="text-sm" style={{ color: currentMode === 'Dark' ? 'rgb(156, 163, 175)' : 'rgb(107, 114, 128)' }}>
+                    {service.address}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">

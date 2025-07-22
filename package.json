@@ -28,6 +28,7 @@
     "cloudinary": "^2.5.1",
     "cloudinary-react": "^1.8.1",
     "dotenv": "^16.4.7",
+    "file-saver": "^2.0.5",
     "framer-motion": "^4.1.17",
     "jspdf": "^2.5.2",
     "jspdf-autotable": "^3.8.4",
@@ -42,7 +43,8 @@
     "react-pdf": "^9.2.1",
     "react-responsive-carousel": "^3.2.23",
     "react-router-dom": "^7.1.1",
-    "react-scripts": "5.0.0"
+    "react-scripts": "5.0.0",
+    "xlsx": "^0.18.5"
   },
   "scripts": {
     "start": "react-scripts start",
