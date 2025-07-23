@@ -633,24 +633,24 @@ export const links = [
       },
     ]
   },
-  {
-    title: 'Policy',
-    links: [
-         {
-        name: 'Privacy-Policy',
-        icon: <MdPolicy />
-,
-      },
-      {
-        name: 'Terms-and-Conditions',
-        icon: <MdPolicy />,
-      },
-      {
-        name: 'Return-and-Refund',
-        icon: <MdPolicy />,
-      },
-    ],
-  },
+//   {
+//     title: 'Policy',
+//     links: [
+//          {
+//         name: 'Privacy-Policy',
+//         icon: <MdPolicy />
+// ,
+//       },
+//       {
+//         name: 'Terms-and-Conditions',
+//         icon: <MdPolicy />,
+//       },
+//       {
+//         name: 'Return-and-Refund',
+//         icon: <MdPolicy />,
+//       },
+//     ],
+//   },
   
 ];
 
