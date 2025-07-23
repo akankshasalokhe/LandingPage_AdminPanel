@@ -517,8 +517,12 @@ export const links = [
       //   icon: <TbPackages/>,
       // },
 
+      // {
+      //   name: 'Carousel',
+      //   icon: <TbCarouselHorizontal />,
+      // },
       {
-        name: 'Carousel',
+        name: 'OurPartner',
         icon: <TbCarouselHorizontal />,
       },
 
