@@ -145,12 +145,12 @@ const Benefit = () => {
                             </td>
                             <td>{benefit.heading}</td>
                             <td>{benefit.description}</td>
-                            <td>
-                                <FaEdit
+                            <td className='d-flex justify-content-center align-items-center'>
+                                <FaEdit size={20}
                                     style={{ cursor: 'pointer', marginRight: 10 }}
                                     onClick={() => handleEdit(benefit)}
                                 />
-                                <FaTrash
+                                <FaTrash size={18}
                                     style={{ cursor: 'pointer', color: 'red' }}
                                     onClick={() => handleDelete(benefit._id)}
                                 />

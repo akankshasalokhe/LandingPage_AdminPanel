@@ -534,6 +534,10 @@ export const links = [
         name: 'Benefit',
         icon: <RiProfileLine />,
       },
+      //  {
+      //   name: 'BecomePartner',
+      //   icon: <RiProfileLine />,
+      // },
 
       {
         name: 'Service-Page',

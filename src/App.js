@@ -50,6 +50,8 @@ import FooterAdmin from './Pages/FooterAdmin';
 import AdminBannerPage from './Pages/BannerPage';
 import OurPartner from './Pages/OurPartner';
 import Benefit from './Pages/Benefit';
+// import NationWidePage from './Pages/NationWidePage';
+import BecomePartner from './Pages/BecomePartner';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -155,6 +157,8 @@ const App = () => {
             <Route path='/banner' element= {<AdminBannerPage/>}/>
             <Route path='/OurPartner' element= {<OurPartner/>}/>
             <Route path='/Benefit' element={<Benefit/>}/>
+            {/* <Route path= '/NationWide' element={<NationWidePage/>}/> */}
+            {<Route path='/BecomePartner' element={<BecomePartner/>}/>}
             <Route path="*" element={<Navigate to="/Service-Page" />} />
            
           </>
