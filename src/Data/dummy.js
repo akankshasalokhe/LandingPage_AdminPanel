@@ -530,6 +530,10 @@ export const links = [
         name: 'Item',
         icon: <RiProfileLine />,
       },
+        {
+        name: 'Benefit',
+        icon: <RiProfileLine />,
+      },
 
       {
         name: 'Service-Page',

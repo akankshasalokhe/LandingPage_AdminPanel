@@ -49,6 +49,7 @@ import Gallery from './Pages/Gallery';
 import FooterAdmin from './Pages/FooterAdmin';
 import AdminBannerPage from './Pages/BannerPage';
 import OurPartner from './Pages/OurPartner';
+import Benefit from './Pages/Benefit';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -153,6 +154,7 @@ const App = () => {
             <Route path='/footeradmin' element={<FooterAdmin/>}/>
             <Route path='/banner' element= {<AdminBannerPage/>}/>
             <Route path='/OurPartner' element= {<OurPartner/>}/>
+            <Route path='/Benefit' element={<Benefit/>}/>
             <Route path="*" element={<Navigate to="/Service-Page" />} />
            
           </>
