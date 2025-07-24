@@ -109,8 +109,8 @@ const submit = async () => {
 
   const isEditMode = !!selected?._id;
   const endpoint = isEditMode
-    ? `https://your-backend.com/api/servicepage/update/${selected._id}`
-    : `https://your-backend.com/api/servicepage/create`;
+    ? `https://landingpagebackend-nine.vercel.app/api/servicepage/update/${selected._id}`
+    : `https://landingpagebackend-nine.vercel.app/api/servicepage/create`;
 
   const fd = new FormData();
   fd.append('servicetitle', selected.servicetitle);

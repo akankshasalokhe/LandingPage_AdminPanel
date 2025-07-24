@@ -28,27 +28,30 @@ const DisplayInfo = () => {
     }
   };
 
- const submitItem = async () => {
+const submitItem = async () => {
   const formData = new FormData();
   const data = selectedItem;
 
   Object.entries(data).forEach(([key, value]) => {
     if (key === 'image') {
-      // ✅ append File or existing URL
       if (value instanceof File) {
         formData.append('image', value);
       } else if (typeof value === 'string') {
-        formData.append('existingImage', value); // backend should handle this field
+        formData.append('image', value);
       }
     } else if (key === 'arrayofimage' && Array.isArray(value)) {
-      // ✅ Handle mixed array: files + URLs
-      value.forEach((item) => {
-        if (item instanceof File) {
-          formData.append('arrayofimage', item); // multiple files
-        } else if (typeof item === 'string') {
-          formData.append('existingArrayImage[]', item); // backend must handle this separately
+      const indexMap = [];
+
+      value.forEach((item, index) => {
+        if (typeof item === 'string') {
+          indexMap.push({ type: 'url', index, value: item });
+        } else if (item instanceof File) {
+          indexMap.push({ type: 'file', index });
+          formData.append(`arrayofimage_${index}`, item); // Dynamic field names
         }
       });
+
+      formData.append('arrayofimageIndexMap', JSON.stringify(indexMap));
     } else if (Array.isArray(value)) {
       formData.append(key, JSON.stringify(value));
     } else if (key !== '_id' && key !== '__v' && value !== null && value !== undefined) {
@@ -63,7 +66,7 @@ const DisplayInfo = () => {
     const method = isCreating ? 'POST' : 'PUT';
 
     const response = await fetch(url, { method, body: formData });
-    if (!response.ok) throw new Error(`Server error: ${await response.text()}`);
+    if (!response.ok) throw new Error(await response.text());
 
     fetchItems();
     setSelectedItem(null);
@@ -72,6 +75,8 @@ const DisplayInfo = () => {
     setError(err.message || 'Failed to submit item');
   }
 };
+
+
 
 
   const deleteItem = async (id) => {
