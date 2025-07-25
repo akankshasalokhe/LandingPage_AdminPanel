@@ -1,5 +1,3 @@
-// ✅ 1. Updated submit function and handlers in Servicepage.jsx
-
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/Displayinfo.css';
@@ -14,169 +12,170 @@ const Servicepage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
 
-useEffect(() => {
-  console.log("Fetching services on mount...");
-  fetchServices();
-}, []);
+  useEffect(() => {
+    fetchServices();
+  }, []);
 
-const fetchServices = async () => {
-  try {
-    setLoading(true);
-    const res = await fetch('https://landingpagebackend-nine.vercel.app/api/servicepage/get');
-    if (!res.ok) throw new Error('Cannot fetch services');
-    const { data = [] } = await res.json();
-    console.log("Fetched services:", data);
-    setServices(data);
-  } catch (e) {
-    console.error("Fetch error:", e.message);
-    setError(e.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  const fetchServices = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch('https://landingpagebackend-nine.vercel.app/api/servicepage/get');
+      if (!res.ok) throw new Error('Cannot fetch services');
+      const { data = [] } = await res.json();
+      setServices(data);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const startCreate = () => {
-  console.log("Starting new service creation");
-  setError(null);
-  setSelected({
-    servicetitle: '',
-    serviceImage: null,
-    titleDescArray: [{ ...initialDesc }],
-    categoryname: [{ ...initialCategory }],
-  });
-};
+  const startCreate = () => {
+    setError(null);
+    setSelected({
+      servicetitle: '',
+      serviceImage: null,
+      titleDescArray: [{ ...initialDesc }],
+      categoryname: [{ ...initialCategory }],
+    });
+  };
 
-const startEdit = (service) => {
-  console.log("Editing service:", service);
-  setError(null);
-  setSelected({
-    ...service,
-    serviceImage: service.serviceImage || null,
-    titleDescArray: service.titleDescArray || [initialDesc],
-    categoryname: (service.categoryname || []).map(c => ({
-      title: c.title,
-      description: c.description,
-      image: Array.isArray(c.image) ? c.image : [c.image],
-    })),
-  });
-};
+  const startEdit = (service) => {
+    setError(null);
+    setSelected({
+      ...service,
+      serviceImage: service.serviceImage || null,
+      titleDescArray: service.titleDescArray || [initialDesc],
+      categoryname: (service.categoryname || []).map(c => ({
+        title: c.title,
+        description: c.description,
+        image: Array.isArray(c.image) ? c.image : [c.image],
+      })),
+    });
+  };
 
-const handleChange = (e, field, i = null, sub = null) => {
-  const val = e.target.value;
-  console.log(`Changing field: ${field}, index: ${i}, subfield: ${sub}, value:`, val);
-  setSelected(prev => {
-    const updated = { ...prev };
-    if (i !== null && sub) updated[field][i][sub] = val;
-    else updated[field] = val;
-    return updated;
-  });
-};
+  const handleChange = (e, field, i = null, sub = null) => {
+    const val = e.target.value;
+    setSelected(prev => {
+      const updated = { ...prev };
+      if (i !== null && sub) updated[field][i][sub] = val;
+      else updated[field] = val;
+      return updated;
+    });
+  };
 
-const handleImage = (e, field, i = null) => {
-  const files = Array.from(e.target.files || []);
-  console.log(`Handling image upload for field: ${field}, index: ${i}`, files);
-  if (!files.length) return;
-  setSelected(prev => {
-    const updated = { ...prev };
-    if (i !== null) updated[field][i].image = files;
-    else updated[field] = files[0];
-    return updated;
-  });
-};
+  const handleImage = (e, field, i = null) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setSelected(prev => {
+      const updated = { ...prev };
+      if (i !== null) updated[field][i].image = [...(updated[field][i].image || []), ...files];
+      else updated[field] = files[0];
+      return updated;
+    });
+  };
 
-const addArr = field => {
-  console.log(`Adding new item to array: ${field}`);
-  setSelected(prev => ({
-    ...prev,
-    [field]: [...prev[field], field === 'titleDescArray' ? { ...initialDesc } : { ...initialCategory }],
-  }));
-};
+  const handleRemoveImage = (catIndex, imgIndex) => {
+    setSelected(prev => {
+      const updated = { ...prev };
+      updated.categoryname[catIndex].image.splice(imgIndex, 1);
+      return updated;
+    });
+  };
 
-const remArr = (field, i) => {
-  console.log(`Removing index ${i} from array: ${field}`);
-  setSelected(prev => ({
-    ...prev,
-    [field]: prev[field].filter((_, idx) => idx !== i),
-  }));
-};
+  const addArr = field => {
+    setSelected(prev => ({
+      ...prev,
+      [field]: [...prev[field], field === 'titleDescArray' ? { ...initialDesc } : { ...initialCategory }],
+    }));
+  };
 
-const submit = async () => {
-  if (!selected?.servicetitle?.trim()) {
-    return setError('Service title is required.');
-  }
+  const remArr = (field, i) => {
+    setSelected(prev => ({
+      ...prev,
+      [field]: prev[field].filter((_, idx) => idx !== i),
+    }));
+  };
 
-  setSubmitting(true);
+  const submit = async () => {
+    if (!selected?.servicetitle?.trim()) {
+      return setError('Service title is required.');
+    }
 
-  const isEditMode = !!selected?._id;
-  const endpoint = isEditMode
-    ? `https://landingpagebackend-nine.vercel.app/api/servicepage/update/${selected._id}`
-    : `https://landingpagebackend-nine.vercel.app/api/servicepage/create`;
+    setSubmitting(true);
+    const isEditMode = !!selected?._id;
+    const endpoint = isEditMode
+      ? `https://landingpagebackend-nine.vercel.app/api/servicepage/update/${selected._id}`
+      : `https://landingpagebackend-nine.vercel.app/api/servicepage/create`;
 
-  const fd = new FormData();
-  fd.append('servicetitle', selected.servicetitle);
+    const fd = new FormData();
+    fd.append('servicetitle', selected.servicetitle);
 
-  // Upload service image if File
-  if (selected.serviceImage instanceof File) {
-    fd.append('serviceImage', selected.serviceImage);
-  }
+    // Service image
+    if (selected.serviceImage instanceof File) {
+      fd.append('serviceImage', selected.serviceImage);
+    }
 
-  // Upload title-desc
-  fd.append('titleDescArray', JSON.stringify(selected.titleDescArray || []));
+    // Title-description points
+    fd.append('titleDescArray', JSON.stringify(selected.titleDescArray || []));
 
-  // Upload all category images
-  const categoryImageCounts = [];
-  selected.categoryname.forEach((cat) => {
-    let count = 0;
-    if (Array.isArray(cat.image)) {
-      cat.image.forEach((file) => {
-        if (file instanceof File) {
-          fd.append('categoryImages', file);
-          count++;
+    // Category images + meta
+    const finalCategoryList = [];
+    const categoryImageCounts = [];
+
+    selected.categoryname.forEach((cat) => {
+      const retainedUrls = [];
+      const newFiles = [];
+
+      (cat.image || []).forEach(img => {
+        if (img instanceof File) {
+          fd.append('categoryImages', img);
+          newFiles.push(img);
+        } else if (typeof img === 'string') {
+          retainedUrls.push(img);
         }
       });
-    }
-    categoryImageCounts.push(count);
-  });
 
-  // Upload category metadata
-  const categories = selected.categoryname.map((cat) => ({
-    title: cat.title,
-    description: cat.description,
-  }));
-  fd.append('categoryname', JSON.stringify(categories));
-  fd.append('categoryImageCounts', JSON.stringify(categoryImageCounts));
+      finalCategoryList.push({
+        title: cat.title,
+        description: cat.description,
+        image: retainedUrls,
+      });
 
-  try {
-    const res = await fetch(endpoint, {
-      method: isEditMode ? 'PUT' : 'POST',
-      body: fd,
+      categoryImageCounts.push(newFiles.length);
     });
-    if (!res.ok) throw new Error('Save failed');
-    await fetchServices();
-    setSelected(null);
-  } catch (e) {
-    console.error("Submit error:", e.message);
-    setError(e.message);
-  } finally {
-    setSubmitting(false);
-  }
-};
 
+    fd.append('categoryname', JSON.stringify(finalCategoryList));
+    fd.append('categoryImageCounts', JSON.stringify(categoryImageCounts));
 
+    try {
+      const res = await fetch(endpoint, {
+        method: isEditMode ? 'PUT' : 'POST',
+        body: fd,
+      });
 
-const del = async id => {
-  if (!window.confirm('Really delete this item?')) return;
-  try {
-    console.log("Deleting service with ID:", id);
-    const res = await fetch(`https://landingpagebackend-nine.vercel.app/api/servicepage/delete/${id}`, { method: 'DELETE' });
-    if (!res.ok) throw new Error('Delete failed');
-    console.log("Deleted successfully");
-    await fetchServices();
-  } catch (e) {
-    console.error("Delete error:", e.message);
-    setError(e.message);
-  }
-};
+      const result = await res.json();
+      if (!res.ok) throw new Error(result?.error || 'Save failed');
+
+      await fetchServices();
+      setSelected(null);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const del = async id => {
+    if (!window.confirm('Really delete this item?')) return;
+    try {
+      const res = await fetch(`https://landingpagebackend-nine.vercel.app/api/servicepage/delete/${id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Delete failed');
+      await fetchServices();
+    } catch (e) {
+      setError(e.message);
+    }
+  };
 
   if (loading) return <div className="text-center py-5">Loading...</div>;
 
@@ -205,7 +204,7 @@ const del = async id => {
                   />
                 )}
                 <div className="d-flex justify-content-center gap-2 mt-4">
-                  <button className="btn btn-sm btn-outline-primary " onClick={() => startEdit(s)}>Update</button>
+                  <button className="btn btn-sm btn-outline-primary" onClick={() => startEdit(s)}>Update</button>
                   <button className="btn btn-sm btn-outline-danger" onClick={() => del(s._id)}>Delete</button>
                 </div>
               </div>
@@ -259,53 +258,50 @@ const del = async id => {
                 <button className="btn btn-sm btn-success mb-4" onClick={() => addArr('titleDescArray')}>Add Point</button>
 
                 <h6>Categories</h6>
-{selected.categoryname.map((cat, i) => (
-  <div key={i} className="mb-3 p-3 bg-light rounded">
-    {/* Show already uploaded category images */}
-    {Array.isArray(cat.image) && cat.image.map((img, idx) =>
-      typeof img === 'string' ? (
-        <img
-          key={idx}
-          src={img}
-          alt=""
-          className="img-thumbnail mb-2 me-2"
-          style={{ maxWidth: 120 }}
-        />
-      ) : null
-    )}
-    
-    {/* Input to upload new images */}
-    <input
-      type="file"
-      name="categoryImages"
-      multiple
-      onChange={(e) => handleImage(e, 'categoryname', i)}
-    />
+                {selected.categoryname.map((cat, i) => (
+                  <div key={i} className="mb-3 p-3 bg-light rounded">
 
-    <input
-      className="form-control mb-2 mt-2"
-      placeholder="Category Title"
-      value={cat.title}
-      onChange={e => handleChange(e, 'categoryname', i, 'title')}
-    />
+                    <div className="mb-2 d-flex flex-wrap gap-2">
+                      {Array.isArray(cat.image) && cat.image.map((img, idx) =>
+                        typeof img === 'string' ? (
+                          <div key={idx} className="position-relative">
+                            <img src={img} className="img-thumbnail" style={{ maxWidth: 120 }} />
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-danger position-absolute top-0 end-0"
+                              onClick={() => handleRemoveImage(i, idx)}
+                            >×</button>
+                          </div>
+                        ) : null
+                      )}
+                    </div>
 
-    <textarea
-      className="form-control mb-2"
-      placeholder="Category Description"
-      value={cat.description}
-      onChange={e => handleChange(e, 'categoryname', i, 'description')}
-    />
+                    <input
+                      type="file"
+                      name="categoryImages"
+                      multiple
+                      className="form-control mb-2"
+                      onChange={(e) => handleImage(e, 'categoryname', i)}
+                    />
 
-    <button
-      className="btn btn-sm btn-danger"
-      onClick={() => remArr('categoryname', i)}
-    >
-      Remove
-    </button>
-  </div>
-))}
-<button className="btn btn-sm btn-success" onClick={() => addArr('categoryname')}>Add Category</button>
+                    <input
+                      className="form-control mb-2"
+                      placeholder="Category Title"
+                      value={cat.title}
+                      onChange={e => handleChange(e, 'categoryname', i, 'title')}
+                    />
 
+                    <textarea
+                      className="form-control mb-2"
+                      placeholder="Category Description"
+                      value={cat.description}
+                      onChange={e => handleChange(e, 'categoryname', i, 'description')}
+                    />
+
+                    <button className="btn btn-sm btn-danger" onClick={() => remArr('categoryname', i)}>Remove</button>
+                  </div>
+                ))}
+                <button className="btn btn-sm btn-success" onClick={() => addArr('categoryname')}>Add Category</button>
               </div>
 
               <div className="modal-footer">
