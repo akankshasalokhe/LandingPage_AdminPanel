@@ -54,8 +54,8 @@ const ContentSectionPage = () => {
 
     const method = editId ? 'PUT' : 'POST';
     const endpoint = editId
-      ? `https://landing-page-backend-alpha.vercel.app/api/contentsection/update/${editId}`
-      : `https://landing-page-backend-alpha.vercel.app/api/contentsection/create`;
+      ? `https://landingpagebackend-nine.vercel.app/api/contentsection/update/${editId}`
+      : `https://landingpagebackend-nine.vercel.app/api/contentsection/create`;
 
     try {
       const res = await fetch(endpoint, { method, body: form });
@@ -88,7 +88,7 @@ const ContentSectionPage = () => {
   const handleDelete = async id => {
     if (!window.confirm('Are you sure?')) return;
     try {
-      const res = await fetch(`https://landing-page-backend-alpha.vercel.app/api/contentsection/delete/${id}`, { method: 'DELETE' });
+      const res = await fetch(`https://landingpagebackend-nine.vercel.app/api/contentsection/delete/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(await res.text());
       await fetchSections();
     } catch (err) {
