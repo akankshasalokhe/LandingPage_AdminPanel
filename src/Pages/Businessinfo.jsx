@@ -157,7 +157,9 @@ const Businessinfo = () => {
                     {business.businessModel}
                   </span>
                 </td>
-                <td className="px-6 py-5 text-sm">{business.remark}</td>
+                <td className="px-6 py-5 text-sm break-words max-w-xs">
+                  {business.remark}
+                </td>
                 <td className="px-6 py-5">
                   <button
                     onClick={() => handleDelete(business._id)}
