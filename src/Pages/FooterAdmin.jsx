@@ -9,6 +9,8 @@ import {
   Container,
   Image,
 } from 'react-bootstrap';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const FooterAdmin = () => {
   const [footer, setFooter] = useState(null);
@@ -31,6 +33,7 @@ const FooterAdmin = () => {
       setFooter(data);
     } catch (err) {
       console.error('Error fetching footer:', err);
+      toast.error('Failed to fetch footer data');
     }
   };
 
@@ -69,36 +72,54 @@ const FooterAdmin = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Footer update error:', errorText);
+        toast.error('Failed to update footer!');
+        return;
+      }
+
       const data = await res.json();
       setFooter(data);
       setShowModal(false);
+      toast.success('Footer updated successfully!');
     } catch (err) {
       console.error('Error saving footer:', err);
+      toast.error('Something went wrong while updating the footer!');
     }
   };
 
   return (
     <Container className="my-4">
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h4>Footer Page</h4>
-        <Button
-          variant="primary"
-          onClick={() => {
-            setFormData(footer || {
-              companyName: '',
-              description: '',
-              phone: '',
-              email: '',
-              website: '',
-              address: '',
-              socialLinks: [],
-            });
-            setShowModal(true);
-          }}
-        >
-          Add Details
-        </Button>
-      </div>
+      <ToastContainer position="top-right" autoClose={3000} />
+      
+      <div className="mb-4">
+  <div className="text-center mb-1">
+    <h4 style={{ fontSize: '26px', fontWeight: 'bold', color: 'blue' }}>Footer Page</h4>
+  </div>
+  <div className="d-flex justify-content-between align-items-center">
+    <small className="text-muted">Manage your website footer content and social links</small>
+    <Button
+      variant="primary"
+      onClick={() => {
+        setFormData(footer || {
+          companyName: '',
+          description: '',
+          phone: '',
+          email: '',
+          website: '',
+          address: '',
+          socialLinks: [],
+        });
+        setShowModal(true);
+      }}
+    >
+      Add Details
+    </Button>
+  </div>
+</div>
+
 
       <Table bordered hover responsive>
         <thead className="table-light">

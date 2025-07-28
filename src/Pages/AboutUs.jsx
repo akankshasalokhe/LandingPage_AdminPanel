@@ -69,8 +69,10 @@ const ContentSectionPage = () => {
       });
       setEditId(null);
       setShowModal(false);
+      alert(editId ? 'Section updated successfully!' : 'Section created successfully!');
     } catch (err) {
       console.error('Error submitting form:', err);
+      alert('Error submitting section. Please try again.');
     }
   };
 
@@ -91,14 +93,16 @@ const ContentSectionPage = () => {
       const res = await fetch(`https://landingpagebackend-nine.vercel.app/api/contentsection/delete/${id}`, { method: 'DELETE' });
       if (!res.ok) throw new Error(await res.text());
       await fetchSections();
+      alert('Section deleted successfully!');
     } catch (err) {
       console.error('Error deleting section:', err);
+      alert('Error deleting section. Please try again.');
     }
   };
 
   return (
     <div className="container mt-5">
-      <h2 className="text-center mb-4">Content Sections</h2>
+      <h2 className="text-center mb-4 " style={{fontSize:'25px', fontWeight:'700', color:'blue'}}>Content Sections</h2>
       <div className="d-flex justify-content-end mb-3">
         <Button onClick={() => {
           setEditId(null);
@@ -122,11 +126,6 @@ const ContentSectionPage = () => {
                 <Card.Body>
                   <Card.Title className="fs-5">{sec.Heading}</Card.Title>
                   <Card.Subtitle className="mb-2 text-muted">{sec.Subheading}</Card.Subtitle>
-                  {sec.content.map((item, idx) => (
-                    <div key={idx} className="mb-1">
-                      <strong>{item.title}</strong>: {item.description}
-                    </div>
-                  ))}
                   <div className="d-flex gap-2 mt-3">
                     <Button variant="outline-warning" size="sm" onClick={() => handleEdit(sec)}>Edit</Button>
                     <Button variant="outline-danger" size="sm" onClick={() => handleDelete(sec._id)}>Delete</Button>
@@ -194,7 +193,7 @@ const ContentSectionPage = () => {
             ))}
             <Button onClick={addContentItem} variant="secondary" className="mb-3">Add Item</Button>
             <div>
-              <Button type="submit">{editId ? 'Update' : 'Create'}Section</Button>
+              <Button type="submit">{editId ? 'Update' : 'Create'} Section</Button>
             </div>
           </Form>
         </Modal.Body>

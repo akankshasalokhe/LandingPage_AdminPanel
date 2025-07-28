@@ -19,15 +19,25 @@ const AdminBannerPage = () => {
   }, []);
 
   const fetchBanners = async () => {
-    const res = await fetch(`${API_BASE}/get`);
-    const data = await res.json();
-    setBanners(data);
+    try {
+      const res = await fetch(`${API_BASE}/get`);
+      const data = await res.json();
+      setBanners(data);
+    } catch (err) {
+      alert('Failed to fetch banners.');
+      console.error(err);
+    }
   };
 
   const fetchPages = async () => {
-    const res = await fetch(`${API_BASE}/pages`);
-    const data = await res.json();
-    setPages(data);
+    try {
+      const res = await fetch(`${API_BASE}/pages`);
+      const data = await res.json();
+      setPages(data);
+    } catch (err) {
+      alert('Failed to fetch pages.');
+      console.error(err);
+    }
   };
 
   const handleAddBanner = async () => {
@@ -37,29 +47,42 @@ const AdminBannerPage = () => {
     formData.append('file', newImage);
 
     setLoading(true);
-    const res = await fetch(`${API_BASE}/create`, {
-      method: 'POST',
-      body: formData
-    });
-    setLoading(false);
+    try {
+      const res = await fetch(`${API_BASE}/create`, {
+        method: 'POST',
+        body: formData
+      });
+      setLoading(false);
 
-    if (res.ok) {
-      alert('Banner added.');
-      setNewImage(null);
-      fetchBanners();
-      fetchPages();
-    } else {
-      alert('Failed to add banner.');
+      if (res.ok) {
+        alert('Banner added successfully.');
+        setNewImage(null);
+        fetchBanners();
+        fetchPages();
+      } else {
+        alert('Failed to add banner.');
+      }
+    } catch (err) {
+      setLoading(false);
+      alert('Error while uploading banner.');
+      console.error(err);
     }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this banner?')) return;
-    const res = await fetch(`${API_BASE}/delete/${id}`, { method: 'DELETE' });
-    if (res.ok) {
-      alert('Deleted.');
-      fetchBanners();
-      fetchPages();
+    try {
+      const res = await fetch(`${API_BASE}/delete/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        alert('Banner deleted successfully.');
+        fetchBanners();
+        fetchPages();
+      } else {
+        alert('Failed to delete banner.');
+      }
+    } catch (err) {
+      alert('Error while deleting banner.');
+      console.error(err);
     }
   };
 
@@ -70,36 +93,35 @@ const AdminBannerPage = () => {
   };
 
   const handleUpdateBanner = async () => {
-  if (!editBannerId || !editPage) return alert('Missing data.');
+    if (!editBannerId || !editPage) return alert('Missing data.');
 
-  try {
-    const formData = new FormData();
-    formData.append('page', editPage);
-    if (editImage) formData.append('file', editImage);
+    try {
+      const formData = new FormData();
+      formData.append('page', editPage);
+      if (editImage) formData.append('file', editImage);
 
-    const res = await fetch(`${API_BASE}/update/${editBannerId}`, {
-      method: 'PUT',
-      body: formData
-    });
+      const res = await fetch(`${API_BASE}/update/${editBannerId}`, {
+        method: 'PUT',
+        body: formData
+      });
 
-    if (res.ok) {
-      alert('Updated.');
-      setEditBannerId(null);
-      setEditPage('');
-      setEditImage(null);
-      fetchBanners();
-      fetchPages();
-    } else {
-      const errData = await res.json();
-      console.error('Update failed:', errData);
-      alert('Failed to update.');
+      if (res.ok) {
+        alert('Banner updated successfully.');
+        setEditBannerId(null);
+        setEditPage('');
+        setEditImage(null);
+        fetchBanners();
+        fetchPages();
+      } else {
+        const errData = await res.json();
+        console.error('Update failed:', errData);
+        alert('Failed to update banner.');
+      }
+    } catch (error) {
+      console.error('Network or server error:', error);
+      alert('Network or server error occurred.');
     }
-  } catch (error) {
-    console.error('Network or server error:', error);
-    alert('Network or server error occurred.');
-  }
-};
-
+  };
 
   const filteredBanners = banners.filter(b => b.page === selectedPage);
 
