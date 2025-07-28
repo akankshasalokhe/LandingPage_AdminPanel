@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Col, Container, Form, Modal, Row, Table } from 'react-bootstrap';
+import { Alert, Button, Col, Container, Form, Modal, Row, Table } from 'react-bootstrap';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 
 const Benefit = () => {
@@ -7,6 +7,7 @@ const Benefit = () => {
     const [showModal, setShowModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [selectedBenefit, setSelectedBenefit] = useState(null);
+    const [alert, setAlert] = useState({ show: false, variant: '', message: '' });
 
     const [formData, setFormData] = useState({
         heading: '',
@@ -72,12 +73,14 @@ const Benefit = () => {
 
             if (res.ok) {
                 fetchBenefits();
+                showAlert('success', editMode ? 'Benefit updated successfully!' : 'Benefit added successfully!');
                 handleClose();
             } else {
-                alert('Failed to save benefit.');
+                showAlert('danger', 'Failed to save benefit.');
             }
         } catch (error) {
             console.error('Submit error:', error);
+            showAlert('danger', 'Something went wrong. Please try again.');
         }
     };
 
@@ -95,10 +98,19 @@ const Benefit = () => {
 
     const handleDelete = async (id) => {
         if (window.confirm('Are you sure you want to delete this benefit?')) {
-            await fetch(`https://landingpagebackend-nine.vercel.app/api/benifits/delete/${id}`, {
-                method: 'DELETE',
-            });
-            fetchBenefits();
+            try {
+                const res = await fetch(`https://landingpagebackend-nine.vercel.app/api/benifits/delete/${id}`, {
+                    method: 'DELETE',
+                });
+                if (res.ok) {
+                    fetchBenefits();
+                    showAlert('success', 'Benefit deleted successfully!');
+                } else {
+                    showAlert('danger', 'Failed to delete benefit.');
+                }
+            } catch (err) {
+                showAlert('danger', 'Something went wrong during deletion.');
+            }
         }
     };
 
@@ -114,11 +126,26 @@ const Benefit = () => {
         });
     };
 
+    const showAlert = (variant, message) => {
+        setAlert({ show: true, variant, message });
+        setTimeout(() => setAlert({ show: false, variant: '', message: '' }), 3000);
+    };
+
     return (
         <Container className="py-4">
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h3 className="fw-bold">Benefit Management</h3>
-                <Button onClick={() => setShowModal(true)}>Add New Benefit</Button>
+            {/* Alert */}
+            {alert.show && (
+                <Alert variant={alert.variant} onClose={() => setAlert({ ...alert, show: false })} dismissible>
+                    {alert.message}
+                </Alert>
+            )}
+
+            {/* Title & Button */}
+            <div className="d-flex justify-content-between align-items-center mb-5">
+                <h3 style={{ fontWeight: 600, color: 'blue', margin: 'auto', fontSize:'25px' }}>Benefit Management</h3>
+                <Button onClick={() => setShowModal(true)} style={{ position: 'absolute', right: '20px' }}>
+                    Add New Benefit
+                </Button>
             </div>
 
             <Table striped bordered hover responsive>
@@ -145,12 +172,14 @@ const Benefit = () => {
                             </td>
                             <td>{benefit.heading}</td>
                             <td>{benefit.description}</td>
-                            <td className='d-flex justify-content-center align-items-center'>
-                                <FaEdit size={20}
+                            <td className="d-flex justify-content-center align-items-center">
+                                <FaEdit
+                                    size={20}
                                     style={{ cursor: 'pointer', marginRight: 10 }}
                                     onClick={() => handleEdit(benefit)}
                                 />
-                                <FaTrash size={18}
+                                <FaTrash
+                                    size={18}
                                     style={{ cursor: 'pointer', color: 'red' }}
                                     onClick={() => handleDelete(benefit._id)}
                                 />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Table } from "react-bootstrap";
+import { FaEdit, FaTrash } from "react-icons/fa";
 
 const OurPartner = () => {
   const [partners, setPartners] = useState([]);
@@ -8,8 +9,14 @@ const OurPartner = () => {
   const [showModal, setShowModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [alert, setAlert] = useState({ type: "", message: "" });
 
   const API_URL = "https://landingpagebackend-nine.vercel.app/api/partners";
+
+  const showAlert = (type, message) => {
+    setAlert({ type, message });
+    setTimeout(() => setAlert({ type: "", message: "" }), 3000);
+  };
 
   const fetchPartners = async (page = 1) => {
     try {
@@ -17,13 +24,14 @@ const OurPartner = () => {
       if (!res.ok) {
         const errText = await res.text();
         console.error("Fetch failed:", errText);
+        showAlert("danger", "Failed to fetch partners.");
         return;
       }
 
       const result = await res.json();
-
       if (!Array.isArray(result.data)) {
         console.error("Invalid API response:", result);
+        showAlert("danger", "Invalid API response.");
         return;
       }
 
@@ -32,6 +40,7 @@ const OurPartner = () => {
       setTotalPages(result.totalPages || 1);
     } catch (error) {
       console.error("Error fetching partners:", error);
+      showAlert("danger", "Error fetching data.");
     }
   };
 
@@ -69,7 +78,7 @@ const OurPartner = () => {
       if (!res.ok) {
         const text = await res.text();
         console.error("Error response:", text);
-        alert("Error submitting form");
+        showAlert("danger", "Error submitting form.");
         return;
       }
 
@@ -79,9 +88,10 @@ const OurPartner = () => {
       setShowModal(false);
       setCurrentPage(1);
       fetchPartners(1);
+      showAlert("success", editingId ? "Partner updated!" : "Partner added!");
     } catch (err) {
       console.error("Submit failed:", err);
-      alert("An error occurred while submitting.");
+      showAlert("danger", "An error occurred while submitting.");
     }
   };
 
@@ -93,11 +103,13 @@ const OurPartner = () => {
       if (res.ok) {
         setCurrentPage(1);
         fetchPartners(1);
+        showAlert("success", "Partner deleted successfully.");
       } else {
-        alert("Delete failed");
+        showAlert("danger", "Delete failed.");
       }
     } catch (err) {
       console.error("Delete failed:", err);
+      showAlert("danger", "Error deleting partner.");
     }
   };
 
@@ -115,15 +127,26 @@ const OurPartner = () => {
 
   return (
     <div className="container mt-5">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <h3 className="mb-0">Our Partners</h3>
+      <div className="text-center mb-4">
+        <h3 className="text-primary mt-3" style={{ fontWeight: "700", fontSize: "25px" }}>
+          Our Partners
+        </h3>
+      </div>
+      <div className="d-flex justify-content-end mb-3">
         <Button variant="primary" onClick={openModal}>
           + Add Partner
         </Button>
       </div>
 
+      {/* Alert Message */}
+      {alert.message && (
+        <div className={`alert alert-${alert.type} text-center`} role="alert">
+          {alert.message}
+        </div>
+      )}
+
       {/* Partner Table */}
-      <Table striped bordered hover responsive>
+      <Table striped bordered hover responsive className="text-center">
         <thead>
           <tr>
             <th>Name</th>
@@ -135,8 +158,8 @@ const OurPartner = () => {
           {Array.isArray(partners) && partners.length > 0 ? (
             partners.map((partner) => (
               <tr key={partner._id}>
-                <td>{partner.name}</td>
-                <td>
+                <td className="align-middle">{partner.name}</td>
+                <td className="align-middle">
                   {partner.fileUrl?.match(/\.(mp4|webm|ogg)$/i) ? (
                     <video
                       src={partner.fileUrl}
@@ -155,21 +178,23 @@ const OurPartner = () => {
                     />
                   )}
                 </td>
-                <td>
+                <td className="align-middle">
                   <Button
                     variant="warning"
                     size="sm"
                     className="me-2"
                     onClick={() => handleEdit(partner)}
+                    title="Edit"
                   >
-                    Edit
+                    <FaEdit />
                   </Button>
                   <Button
                     variant="danger"
                     size="sm"
                     onClick={() => handleDelete(partner._id)}
+                    title="Delete"
                   >
-                    Delete
+                    <FaTrash />
                   </Button>
                 </td>
               </tr>

@@ -178,7 +178,7 @@ const Gallery = () => {
   return (
     <Container className="gallery-container mt-4">
       <Row className="mb-3">
-        <Col><h3>Gallery Management</h3></Col>
+        <Col style={{fontSize:'25px', fontWeight:'600'}}><h3>Gallery Management</h3></Col>
         <Col className="text-end">
           <Button className="add-button" onClick={() => {
             setFormData({ title: '', category: '', year: '', src: '' });
